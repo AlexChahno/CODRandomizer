@@ -2308,7 +2308,7 @@ function translateAttachments(attachments) {
 function toggleLanguage() {
     currentLang = currentLang === 'en' ? 'ru' : 'en';
     const btn = document.getElementById('langToggle');
-    btn.innerHTML = currentLang === 'en' ? '<i class="fas fa-globe"></i> RU' : '<i class="fas fa-globe"></i> EN';
+    btn.innerHTML = currentLang === 'en' ? '<i class="fas fa-globe"></i> ENG' : '<i class="fas fa-globe"></i> RU';
 
     const texts = {
         en: {
