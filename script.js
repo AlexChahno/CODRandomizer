@@ -35,6 +35,58 @@ let replacementChances = {
     secondary: { used: false, available: true }
 };
 
+// Локализация для модальных окон замены
+const MODAL_TRANSLATIONS = {
+    en: {
+        selectWeaponTitle: 'Select a weapon to replace attachments',
+        selectWeaponSub: 'You have 1 replacement chance for each weapon',
+        primaryWeapon: 'Primary Weapon',
+        secondaryWeapon: 'Secondary Weapon',
+        noWeapon: 'None',
+        available: '✅',
+        notAvailable: '❌',
+        selectModuleTitle: 'Select attachment to replace',
+        moduleInfo: 'Weapon: {weaponName}',
+        replaceTitle: 'Replace Attachment',
+        chanceInfo: '✅ You have 1 replacement chance for this weapon',
+        currentModule: 'Current module: {moduleName}',
+        sameCategory: '🔄 From same category',
+        otherCategory: '🎲 From other category',
+        cancel: '✕ Cancel',
+        replaceSuccess: '✅ Module replaced with <strong>{newName}</strong> ({source})',
+        noAttachments: 'This weapon has no attachments to replace',
+        noChance: 'You have no replacement chances for this weapon!',
+        noModules: 'No available modules for replacement in this category',
+        noOtherModules: 'No available modules for replacement in other categories',
+        generateFirst: 'Please generate a class first!',
+        noChances: 'You have no replacement chances left. Generate a new class!'
+    },
+    ru: {
+        selectWeaponTitle: 'Выберите оружие для замены модулей',
+        selectWeaponSub: 'У вас есть 1 шанс на замену модуля для каждого оружия',
+        primaryWeapon: 'Основное оружие',
+        secondaryWeapon: 'Второстепенное оружие',
+        noWeapon: 'Не выбрано',
+        available: '✅',
+        notAvailable: '❌',
+        selectModuleTitle: 'Выберите модуль для замены',
+        moduleInfo: 'Оружие: {weaponName}',
+        replaceTitle: 'Заменить модуль',
+        chanceInfo: '✅ У вас есть 1 шанс на замену модуля для этого оружия',
+        currentModule: 'Текущий модуль: {moduleName}',
+        sameCategory: '🔄 Из этой же категории',
+        otherCategory: '🎲 Из другой категории',
+        cancel: '✕ Отмена',
+        replaceSuccess: '✅ Модуль заменен на <strong>{newName}</strong> ({source})',
+        noAttachments: 'У этого оружия нет модулей для замены',
+        noChance: 'У вас нет доступных шансов на замену модулей для этого оружия!',
+        noModules: 'Нет доступных модулей для замены в этой категории',
+        noOtherModules: 'Нет доступных модулей для замены в других категориях',
+        generateFirst: 'Сначала сгенерируйте класс!',
+        noChances: 'У вас нет доступных шансов на замену модулей. Сгенерируйте новый класс!'
+    }
+};
+
 // История генераций (для уникальности)
 let generationHistory = [];
 const MAX_HISTORY = 10;
@@ -1686,19 +1738,21 @@ function getWeaponCategoryName(weapon) {
 
 function openReplacementMode() {
     if (!currentClass) {
-        alert('Сначала сгенерируйте класс!');
+        alert(MODAL_TRANSLATIONS[currentLang].generateFirst);
         return;
     }
     const primaryAvailable = hasReplacementChance('primary');
     const secondaryAvailable = hasReplacementChance('secondary');
     if (!primaryAvailable && !secondaryAvailable) {
-        alert('У вас нет доступных шансов на замену модулей. Сгенерируйте новый класс!');
+        alert(MODAL_TRANSLATIONS[currentLang].noChances);
         return;
     }
     showWeaponSelectionDialog();
 }
 
 function showWeaponSelectionDialog() {
+    const lang = currentLang;
+    const t = MODAL_TRANSLATIONS[lang];
     const overlay = document.createElement('div');
     overlay.className = 'modal-overlay';
     overlay.id = 'weaponSelectionOverlay';
@@ -1708,23 +1762,26 @@ function showWeaponSelectionDialog() {
 
     const title = document.createElement('h2');
     title.style.cssText = 'color:#ff8c00;font-family:"Staatliches",cursive;font-size:1.8rem;margin-bottom:0.5rem;text-align:center;';
-    title.textContent = 'Выберите оружие для замены модулей';
+    title.textContent = t.selectWeaponTitle;
 
     const subtitle = document.createElement('p');
     subtitle.style.cssText = 'color:#aaa;font-size:0.9rem;margin-bottom:1.5rem;text-align:center;';
-    subtitle.textContent = 'У вас есть 1 шанс на замену модуля для каждого оружия';
+    subtitle.textContent = t.selectWeaponSub;
 
     const list = document.createElement('div');
     list.style.cssText = 'display:flex;flex-direction:column;gap:0.75rem;margin-bottom:1rem;';
 
-    let primaryDisplayName = currentClass.primary ? currentClass.primary.name : 'Не выбрано';
-    if (currentLang === 'ru' && typeof window.translateWeaponName === 'function') {
-        primaryDisplayName = window.translateWeaponName(primaryDisplayName);
+    // Primary
+    let primaryDisplayName = currentClass.primary ? currentClass.primary.name : t.noWeapon;
+    if (currentClass.primary) {
+        // Переводим имя оружия через translateWeaponObject
+        const translated = translateWeaponObject(currentClass.primary);
+        primaryDisplayName = translated.name || primaryDisplayName;
     }
-    const primaryBtn = document.createElement('button');
     const primaryCount = currentClass.primary?.attachments?.length || 0;
     const primaryAvailable = hasReplacementChance('primary');
-    primaryBtn.textContent = `🔫 Основное оружие: ${primaryDisplayName} [${primaryCount}/5] ${primaryAvailable ? '✅' : '❌'}`;
+    const primaryBtn = document.createElement('button');
+    primaryBtn.textContent = `🔫 ${t.primaryWeapon}: ${primaryDisplayName} [${primaryCount}/5] ${primaryAvailable ? t.available : t.notAvailable}`;
     primaryBtn.className = 'primary-btn';
     primaryBtn.style.cssText = `
         background:${primaryAvailable ? '#333' : '#222'}; color:${primaryAvailable ? '#fff' : '#666'};
@@ -1739,14 +1796,16 @@ function showWeaponSelectionDialog() {
         primaryBtn.onclick = () => { overlay.remove(); showModuleSelectionDialog('primary'); };
     }
 
-    let secondaryDisplayName = currentClass.secondary ? currentClass.secondary.name : 'Не выбрано';
-    if (currentLang === 'ru' && typeof window.translateWeaponName === 'function') {
-        secondaryDisplayName = window.translateWeaponName(secondaryDisplayName);
+    // Secondary
+    let secondaryDisplayName = currentClass.secondary ? currentClass.secondary.name : t.noWeapon;
+    if (currentClass.secondary) {
+        const translated = translateWeaponObject(currentClass.secondary);
+        secondaryDisplayName = translated.name || secondaryDisplayName;
     }
-    const secondaryBtn = document.createElement('button');
     const secondaryCount = currentClass.secondary?.attachments?.length || 0;
     const secondaryAvailable = hasReplacementChance('secondary');
-    secondaryBtn.textContent = `🔫 Второстепенное оружие: ${secondaryDisplayName} [${secondaryCount}/5] ${secondaryAvailable ? '✅' : '❌'}`;
+    const secondaryBtn = document.createElement('button');
+    secondaryBtn.textContent = `🔫 ${t.secondaryWeapon}: ${secondaryDisplayName} [${secondaryCount}/5] ${secondaryAvailable ? t.available : t.notAvailable}`;
     secondaryBtn.className = 'secondary-btn';
     secondaryBtn.style.cssText = `
         background:${secondaryAvailable ? '#333' : '#222'}; color:${secondaryAvailable ? '#fff' : '#666'};
@@ -1765,7 +1824,7 @@ function showWeaponSelectionDialog() {
     list.appendChild(secondaryBtn);
 
     const closeBtn = document.createElement('button');
-    closeBtn.textContent = '✕ Отмена';
+    closeBtn.textContent = t.cancel;
     closeBtn.style.cssText = `
         background:transparent; color:#888; border:1px solid #555; padding:0.5rem 1rem; border-radius:8px;
         cursor:pointer; font-family:"Russo One",sans-serif; font-size:0.9rem; transition:all 0.3s; width:100%; margin-top:0.5rem;
@@ -1785,10 +1844,12 @@ function showWeaponSelectionDialog() {
 function showModuleSelectionDialog(weaponType) {
     const weapon = currentClass[weaponType];
     if (!weapon || !weapon.attachments || weapon.attachments.length === 0) {
-        alert('У этого оружия нет модулей для замены');
+        alert(MODAL_TRANSLATIONS[currentLang].noAttachments);
         return;
     }
 
+    const lang = currentLang;
+    const t = MODAL_TRANSLATIONS[lang];
     const overlay = document.createElement('div');
     overlay.className = 'modal-overlay';
     overlay.id = 'moduleSelectionOverlay';
@@ -1798,15 +1859,14 @@ function showModuleSelectionDialog(weaponType) {
 
     const title = document.createElement('h2');
     title.style.cssText = 'color:#ff8c00;font-family:"Staatliches",cursive;font-size:1.8rem;margin-bottom:0.5rem;text-align:center;';
-    title.textContent = 'Выберите модуль для замены';
+    title.textContent = t.selectModuleTitle;
 
     let weaponName = weapon.name;
-    if (currentLang === 'ru' && typeof window.translateWeaponName === 'function') {
-        weaponName = window.translateWeaponName(weapon.name);
-    }
+    const translatedWeapon = translateWeaponObject(weapon);
+    weaponName = translatedWeapon.name || weaponName;
     const weaponInfo = document.createElement('p');
     weaponInfo.style.cssText = 'color:#aaa;font-size:0.9rem;margin-bottom:1.5rem;text-align:center;';
-    weaponInfo.textContent = `${weaponType === 'primary' ? 'Основное' : 'Второстепенное'} оружие: ${weaponName}`;
+    weaponInfo.textContent = t.moduleInfo.replace('{weaponName}', weaponName);
 
     const list = document.createElement('div');
     list.style.cssText = 'display:flex;flex-direction:column;gap:0.5rem;margin-bottom:1rem;max-height:300px;overflow-y:auto;';
@@ -1814,11 +1874,11 @@ function showModuleSelectionDialog(weaponType) {
     weapon.attachments.forEach((att, index) => {
         const btn = document.createElement('button');
         const category = getModuleCategory(att);
-        const categoryName = getCategoryName(category);
+        const categoryName = getLocalizedCategoryName(category, lang);
         let attachmentName = att.name;
-        if (currentLang === 'ru' && typeof window.translateAttachmentName === 'function') {
-            attachmentName = window.translateAttachmentName(att.name);
-        }
+        // Переводим название модуля
+        const translatedAtt = translateAttachments([att])[0];
+        if (translatedAtt) attachmentName = translatedAtt.name;
         btn.textContent = `${attachmentName} ${categoryName ? `(${categoryName})` : ''}`;
         btn.style.cssText = `
             background:#333; color:#fff; border:1px solid #555; padding:0.5rem 0.75rem; border-radius:6px;
@@ -1831,7 +1891,7 @@ function showModuleSelectionDialog(weaponType) {
     });
 
     const closeBtn = document.createElement('button');
-    closeBtn.textContent = '✕ Отмена';
+    closeBtn.textContent = t.cancel;
     closeBtn.style.cssText = `
         background:transparent; color:#888; border:1px solid #555; padding:0.5rem 1rem; border-radius:8px;
         cursor:pointer; font-family:"Russo One",sans-serif; font-size:0.9rem; transition:all 0.3s; width:100%;
@@ -1852,7 +1912,7 @@ function openReplacementDialog(weaponType, attachmentIndex) {
     const weapon = currentClass[weaponType];
     if (!weapon) return;
     if (!hasReplacementChance(weaponType)) {
-        alert('У вас нет доступных шансов на замену модулей для этого оружия!');
+        alert(MODAL_TRANSLATIONS[currentLang].noChance);
         return;
     }
     const currentAttachment = weapon.attachments[attachmentIndex];
@@ -1860,10 +1920,11 @@ function openReplacementDialog(weaponType, attachmentIndex) {
     const currentCategory = getModuleCategory(currentAttachment);
     const currentCategoryName = getCategoryName(currentCategory);
     let currentAttachmentName = currentAttachment.name;
-    if (currentLang === 'ru' && typeof window.translateAttachmentName === 'function') {
-        currentAttachmentName = window.translateAttachmentName(currentAttachment.name);
-    }
+    const translatedAtt = translateAttachments([currentAttachment])[0];
+    if (translatedAtt) currentAttachmentName = translatedAtt.name;
 
+    const lang = currentLang;
+    const t = MODAL_TRANSLATIONS[lang];
     const overlay = document.createElement('div');
     overlay.className = 'modal-overlay';
     overlay.id = 'replacementOverlay';
@@ -1873,24 +1934,25 @@ function openReplacementDialog(weaponType, attachmentIndex) {
 
     const title = document.createElement('h2');
     title.style.cssText = 'color:#ff8c00;font-family:"Staatliches",cursive;font-size:1.8rem;margin-bottom:0.5rem;text-align:center;';
-    title.textContent = 'Заменить модуль';
+    title.textContent = t.replaceTitle;
 
     const chanceInfo = document.createElement('p');
     chanceInfo.style.cssText = 'color:#4CAF50;font-size:0.85rem;margin-bottom:1rem;text-align:center;';
-    chanceInfo.textContent = '✅ У вас есть 1 шанс на замену модуля для этого оружия';
+    chanceInfo.textContent = t.chanceInfo;
 
     const currentInfo = document.createElement('p');
     currentInfo.style.cssText = 'color:#aaa;font-size:0.9rem;margin-bottom:1.5rem;text-align:center;';
     currentInfo.innerHTML = `
-        <strong style="color:#fff;">Текущий модуль:</strong> ${currentAttachmentName}
-        ${currentCategoryName ? `<span style="color:#888;margin-left:10px;">(${currentCategoryName})</span>` : ''}
+        <strong style="color:#fff;">${t.currentModule.replace('{moduleName}', currentAttachmentName)}</strong>
+        ${currentCategoryName ? `<span style="color:#888;margin-left:10px;">(${getLocalizedCategoryName(currentCategory, lang)})</span>` : ''}
     `;
 
     const buttonContainer = document.createElement('div');
     buttonContainer.style.cssText = 'display:flex;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap;justify-content:center;';
 
+    // КНОПКА "ИЗ ЭТОЙ ЖЕ КАТЕГОРИИ"
     const sameCategoryBtn = document.createElement('button');
-    sameCategoryBtn.textContent = '🔄 Из этой же категории';
+    sameCategoryBtn.textContent = t.sameCategory;
     sameCategoryBtn.style.cssText = `
         background:#333; color:#fff; border:1px solid #ff8c00; padding:0.75rem 1.5rem; border-radius:8px;
         cursor:pointer; font-family:"Russo One",sans-serif; font-size:0.9rem; transition:all 0.3s; flex:1; min-width:150px;
@@ -1903,21 +1965,22 @@ function openReplacementDialog(weaponType, attachmentIndex) {
         );
         if (newAttachment) {
             let newName = newAttachment.name;
-            if (currentLang === 'ru' && typeof window.translateAttachmentName === 'function') {
-                newName = window.translateAttachmentName(newAttachment.name);
-            }
+            const translatedNew = translateAttachments([newAttachment])[0];
+            if (translatedNew) newName = translatedNew.name;
             replaceModule(weaponType, attachmentIndex, newAttachment);
             useReplacementChance(weaponType);
             overlay.remove();
-            showReplaceSuccess(newName, 'той же категории');
+            const sourceText = lang === 'en' ? 'same category' : 'той же категории';
+            showReplaceSuccess(newName, sourceText);
             updateChanceIndicators();
         } else {
-            alert('Нет доступных модулей для замены в этой категории');
+            alert(t.noModules);
         }
     };
 
+    // КНОПКА "ИЗ ДРУГОЙ КАТЕГОРИИ"
     const otherCategoryBtn = document.createElement('button');
-    otherCategoryBtn.textContent = '🎲 Из другой категории';
+    otherCategoryBtn.textContent = t.otherCategory;
     otherCategoryBtn.style.cssText = `
         background:#333; color:#fff; border:1px solid #ff8c00; padding:0.75rem 1.5rem; border-radius:8px;
         cursor:pointer; font-family:"Russo One",sans-serif; font-size:0.9rem; transition:all 0.3s; flex:1; min-width:150px;
@@ -1930,18 +1993,17 @@ function openReplacementDialog(weaponType, attachmentIndex) {
         );
         if (newAttachment) {
             const newCategory = getModuleCategory(newAttachment);
-            const newCategoryName = getCategoryName(newCategory);
+            const newCategoryName = getLocalizedCategoryName(newCategory, lang);
             let newName = newAttachment.name;
-            if (currentLang === 'ru' && typeof window.translateAttachmentName === 'function') {
-                newName = window.translateAttachmentName(newAttachment.name);
-            }
+            const translatedNew = translateAttachments([newAttachment])[0];
+            if (translatedNew) newName = translatedNew.name;
             replaceModule(weaponType, attachmentIndex, newAttachment);
             useReplacementChance(weaponType);
             overlay.remove();
-            showReplaceSuccess(newName, `категории "${newCategoryName}"`);
+            showReplaceSuccess(newName, newCategoryName);
             updateChanceIndicators();
         } else {
-            alert('Нет доступных модулей для замены в других категориях');
+            alert(t.noOtherModules);
         }
     };
 
@@ -1949,7 +2011,7 @@ function openReplacementDialog(weaponType, attachmentIndex) {
     buttonContainer.appendChild(otherCategoryBtn);
 
     const closeBtn = document.createElement('button');
-    closeBtn.textContent = '✕ Отмена';
+    closeBtn.textContent = t.cancel;
     closeBtn.style.cssText = `
         background:transparent; color:#888; border:1px solid #555; padding:0.5rem 1rem; border-radius:8px;
         cursor:pointer; font-family:"Russo One",sans-serif; font-size:0.9rem; transition:all 0.3s; width:100%; margin-top:0.5rem;
@@ -1968,6 +2030,8 @@ function openReplacementDialog(weaponType, attachmentIndex) {
 }
 
 function showReplaceSuccess(newName, source) {
+    const lang = currentLang;
+    const t = MODAL_TRANSLATIONS[lang];
     const notification = document.createElement('div');
     notification.style.cssText = `
         position:fixed; bottom:30px; left:50%; transform:translateX(-50%);
@@ -1976,7 +2040,7 @@ function showReplaceSuccess(newName, source) {
         font-family:"Russo One",sans-serif; font-size:1.1rem; text-align:center;
         animation:slideIn 0.3s ease; box-shadow:0 0 30px rgba(255,140,0,0.3);
     `;
-    notification.innerHTML = `✅ Модуль заменен на <strong style="color:#ff8c00;">${newName}</strong> (${source})`;
+    notification.innerHTML = t.replaceSuccess.replace('{newName}', newName).replace('{source}', source);
     document.body.appendChild(notification);
     setTimeout(() => {
         notification.style.opacity = '0';
