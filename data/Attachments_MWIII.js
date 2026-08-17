@@ -490,7 +490,7 @@ window.ATTACHMENTS_MWIII = {
             { id: 'mk2_renetti_long_barrel', name: 'MK2 Renetti Long Barrel', compatibility: ['Renetti'] },
             { id: 'mlx_extended_heavy_barrel', name: 'MLX Extended Heavy Barrel', compatibility: ['Renetti'], conflicts: ['muzzles'] },
             { id: 'ziu_16_heavy_long_barrel', name: 'ZIU-16 Heavy Long Barrel', compatibility: ['TYR'] },
-            { id: 'hels_reach_short_barrel', name: 'Hels Reach Short Barrel', compatibility: ['TYR'] },
+            { id: 'hels_reach_short_barrel', name: 'Hels Reach Short Barrel', compatibility: ['TYR'], conflicts: ['underbarrels'] },
             { id: 'limitless_v2_heavy_barrel', name: 'Limitless v2 Heavy Barrel', compatibility: ['TYR'] },
             { id: 'huntlock_light_barrel', name: 'Huntlock Light Barrel', compatibility: ['TYR'] },
             { id: 'jak_annihilator_long_barrel', name: 'JAK Annihilator Long Barrel', compatibility: ['Pulemyot 762'], weaponRequirements: {'Pulemyot 762':['jak_annihilator_bullpup_kit'] } },

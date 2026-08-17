@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MWII · Гансмит</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        }
+        body {
+            background: #0b0d10;
+            color: #e8edf5;
+            padding: 12px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #app {
+            max-width: 700px;
+            width: 100%;
+            background: #14181c;
+            border-radius: 28px;
+            padding: 16px 14px 24px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.7);
+            border: 1px solid #2a313a;
+        }
+        h1 {
+            font-size: 22px;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #2a313a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .select-weapon {
+            margin: 16px 0 18px;
+        }
+        select {
+            width: 100%;
+            padding: 12px 14px;
+            background: #1e252c;
+            border: 1px solid #2e3842;
+            border-radius: 14px;
+            color: #f0f4fa;
+            font-size: 16px;
+            font-weight: 500;
+            outline: none;
+            cursor: pointer;
+            transition: 0.2s;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238f9aa8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+        }
+        select:focus {
+            border-color: #5a7a9a;
+            box-shadow: 0 0 0 3px #1f3a4f;
+        }
+        .category-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-top: 6px;
+        }
+        .category-block {
+            background: #1a2128;
+            border-radius: 20px;
+            padding: 10px 12px 12px;
+            border: 1px solid #29323c;
+        }
+        .category-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            font-size: 15px;
+            color: #b6c4d4;
+            padding-bottom: 6px;
+            border-bottom: 1px dashed #2b3540;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .category-header span {
+            background: #252f3a;
+            padding: 2px 12px;
+            border-radius: 30px;
+            font-size: 12px;
+            color: #b0c0cf;
+        }
+        .attachment-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .attachment-tag {
+            background: #232d37;
+            padding: 5px 14px 5px 12px;
+            border-radius: 40px;
+            font-size: 13px;
+            font-weight: 450;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid #2f3b47;
+            transition: 0.15s;
+            cursor: default;
+            white-space: nowrap;
+            color: #d0dae6;
+        }
+        .attachment-tag.active {
+            background: #2b4b63;
+            border-color: #4f83ab;
+            color: white;
+            box-shadow: 0 0 0 1px #3b6f94;
+        }
+        .attachment-tag.blocked {
+            background: #30242a;
+            border-color: #683c44;
+            color: #b0888f;
+            opacity: 0.7;
+        }
+        .attachment-tag.clickable {
+            cursor: pointer;
+        }
+        .attachment-tag.clickable:hover:not(.blocked) {
+            background: #2c3845;
+            border-color: #4a5f72;
+        }
+        .attachment-tag.active.clickable:hover {
+            background: #3a5f7a;
+            border-color: #5a8ab0;
+        }
+        .attachment-tag .conflict-indicator {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            background: #3f2c32;
+            border-radius: 20px;
+            text-align: center;
+            line-height: 14px;
+            font-size: 11px;
+            color: #d97a8a;
+            font-weight: 700;
+        }
+        .attachment-tag.active .conflict-indicator {
+            background: #2f4f62;
+            color: #b0d4ec;
+        }
+        .empty-state {
+            color: #6f7e8e;
+            font-size: 13px;
+            padding: 6px 0 2px 4px;
+            font-style: italic;
+        }
+        .footer-hint {
+            margin-top: 20px;
+            font-size: 13px;
+            color: #6f7f90;
+            text-align: center;
+            border-top: 1px solid #232c35;
+            padding-top: 14px;
+            letter-spacing: 0.2px;
+        }
+        .footer-hint i {
+            font-style: normal;
+            background: #1e2832;
+            padding: 2px 10px;
+            border-radius: 30px;
+            margin: 0 4px;
+        }
+        .reset-btn {
+            background: #222d38;
+            border: none;
+            color: #bccad9;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.15s;
+            border: 1px solid #31404d;
+        }
+        .reset-btn:hover {
+            background: #2f3d4b;
+            color: white;
+        }
+        .weapon-category-badge {
+            font-size: 12px;
+            color: #8f9aa8;
+            margin-left: 8px;
+            font-weight: 400;
+        }
+        @media (max-width: 480px) {
+            #app { padding: 12px 10px; }
+            .attachment-tag { font-size: 12px; padding: 4px 10px; }
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <h1>
+        <span>⚙ MWII · Gunsmith</span>
+        <button class="reset-btn" id="resetBtn">✕ сброс</button>
+    </h1>
+    <div class="select-weapon">
+        <select id="weaponSelect"></select>
+    </div>
+    <div id="categoriesContainer" class="category-grid"></div>
+    <div class="footer-hint">
+        <i>⛔</i> блокировка &nbsp;·&nbsp; <i>✔</i> активно &nbsp;·&nbsp; клик по модулю — переключить
+    </div>
+</div>
+<script>
+    // ============================================================
+    // ДАННЫЕ
+    // ============================================================
+    const WEAPONS_MWII = {
+        AR: {
+            name: 'Assault Rifles',
+            short: 'AR',
+            weapons: [
+                'AN-94',
+                'VX Compact',
+                'MK35 ISR',
+                'Voyak KT-3',
+                'EGRT-17',
+                'Maddox RFB',
+                'M15 MOD 0',
+                'AK-27',
+                'MXR-17',
+                'X9 Maverick',
+                'DS20 Mirage',
+                'Peacekeeper Mk1'
+            ]
+        },
+        SMG: {
+            name: 'Submachine Guns',
+            short: 'SMG',
+            weapons: [
+                'CBRS-3',
+                'VST',
+                'REV-46',
+                'Stormwolf 45',
+                'Kogot-7',
+                'Ryden 45K',
+                'RK-9',
+                'Razor 9mm',
+                'Dravec 45',
+                'Carbon 57',
+                'MPC-25'
+            ]
+        },
+        SG: {
+            name: 'Shotguns',
+            short: 'SG',
+            weapons: [
+                'SG-12',
+                'M10 Breacher',
+                'Echo 12',
+                'Akita'
+            ]
+        },
+        LMG: {
+            name: 'Light Machine Guns',
+            short: 'LMG',
+            weapons: [
+                'Sokol 545',
+                'Mk.78',
+                'XM325'
+            ]
+        },
+        MMR: {
+            name: 'Marksman Rifles',
+            short: 'MMR',
+            weapons: [
+                'KRS-7.62',
+                'Swordfish A1',
+                'M8A1',
+                'Warden 308',
+                'M34 Novaline'
+            ]
+        },
+        SR: {
+            name: 'Sniper Rifles',
+            short: 'SR',
+            weapons: [
+                'Strider 300',
+                'Hawker HX',
+                'VS Recon',
+                'Shadow SK',
+                'XR-3 ION'
+            ]
+        },
+        P: {
+            name: 'Pistols',
+            short: 'P',
+            weapons: [
+                '1911',
+                'Jäger 45',
+                'Velox 5.7',
+                'CODA 9'
+            ]
+        },
+        GL: {
+            name: 'Grenade Launchers',
+            short: 'GL',
+            weapons: [
+                'AAROW 109',
+                'A.R.C. M1'
+            ]
+        },
+        S: {
+            name: 'Special Weapons',
+            short: 'S',
+            weapons: [
+                'Grimhawk',
+                'Siren',
+                'GDL Havoc',
+                'NX Ravager'
+            ]
+        }
+    };
+
+    const ATTACHMENTS_MWII = {
+        optics: {
+            name: 'Optics',
+            category: 'optics',
+            items: [
+                { id: 'elo', name: 'ELO', compatibility: ['AR', 'SMG', 'SG', 'LMG', 'MMR', 'SR', 'P'] },
+                { id: 'mini_reflex_01', name: 'Mini Reflex 01', compatibility: ['AR', 'SMG', 'SG', 'P'] },
+                { id: 'mini_reflex_02', name: 'Mini Reflex 02', compatibility: ['AR', 'SMG', 'SG', 'P'] },
+                { id: 'mini_reflex_03', name: 'Mini Reflex 03', compatibility: ['AR', 'SMG', 'SG', 'LMG', 'MMR', 'SR'] },
+                { id: 'mini_reflex_04', name: 'Mini Reflex 04', compatibility: ['AR', 'SMG', 'SG', 'P'] },
+                { id: 'mini_reflex_05', name: 'Mini Reflex 05', compatibility: ['P'] },
+                { id: 'mini_reflex_06', name: 'Mini Reflex 06', compatibility: ['P'] },
+                { id: 'reflex_01', name: 'Reflex 01', compatibility: ['AR', 'SMG', 'SG', 'LMG', 'MMR', 'SR', 'P'] },
+                { id: 'reflex_02', name: 'Reflex 02', compatibility: ['AR', 'SG', 'LMG', 'MMR'] },
+                { id: 'reflex_03', name: 'Reflex 03', compatibility: ['AR', 'SMG', 'LMG'] },
+                { id: 'reflex_04', name: 'Reflex 04', compatibility: ['AR', 'SMG', 'MMR', 'SR'] },
+                { id: 'reflex_05', name: 'Reflex 05', compatibility: ['AR', 'SMG', 'SG', 'LMG'] },
+                { id: 'reflex_06', name: 'Reflex 06', compatibility: ['AR', 'SMG', 'SG'] },
+                { id: 'holo_sight_01', name: 'Holo Sight 01', compatibility: ['AR', 'SMG', 'SG', 'LMG', 'MMR', 'SR'] },
+                { id: 'holo_sight_02', name: 'Holo Sight 02', compatibility: ['AR', 'SMG', 'SG', 'LMG', 'MMR', 'SR'] },
+                { id: 'thermal_holographic', name: 'Thermal Holographic', compatibility: ['AR', 'SMG', 'SG', 'LMG', 'MMR', 'SR'] },
+                { id: 'holo_range_sight', name: 'Holo Range Sight', compatibility: ['AR', 'SMG', 'SG', 'LMG', 'MMR', 'SR'] },
+                { id: 'hybrid_01', name: 'Hybrid 01', compatibility: ['AR', 'SMG', 'LMG', 'MMR', 'SR'] },
+                { id: 'target_finder', name: 'Target Finder', compatibility: ['AR', 'SMG', 'SG', 'LMG', 'MMR', 'SR'] },
+                { id: 'milimeter_scanner', name: 'Milimeter Scanner', compatibility: ['AR', 'SMG', 'SG', 'LMG', 'MMR', 'SR'] },
+                { id: '2x_optic', name: '2x Optic', compatibility: ['AR', 'SMG', 'SG', 'LMG', 'MMR', 'SR'] },
+                { id: '3x_optic', name: '3x Optic', compatibility: ['AR', 'SMG', 'SG', 'LMG', 'MMR', 'SR'] },
+                { id: '4x_01_optic', name: '4x-01 Optic', compatibility: ['AR', 'SMG', 'LMG', 'MMR', 'SR'] },
+                { id: '4x_02_optic', name: '4x-02 Optic', compatibility: ['AR', 'SMG', 'LMG', 'MMR', 'SR'] },
+                { id: 'hybrid_02', name: 'Hybrid 02', compatibility: ['AR', 'SMG', 'LMG', 'MMR', 'SR'] },
+                { id: 'thermal_sight', name: 'Thermal Sight', compatibility: ['AR', 'SMG', 'LMG', 'MMR', 'SR'] },
+                { id: 'dual_zoom_scope', name: 'Dual Zoom Scope', compatibility: ['AR', 'SMG', 'LMG', 'MMR', 'SR'] },
+                { id: 'variable_zoom_scope_01', name: 'Variable Zoom Scope 01', compatibility: ['AR', 'LMG', 'MMR', 'SR'] },
+                { id: 'variable_zoom_scope_02', name: 'Variable Zoom Scope 02', compatibility: ['LMG', 'MMR', 'SR'] },
+                { id: 'range_finder_scope', name: 'Range Finder Scope', compatibility: ['LMG', 'MMR', 'SR'] },
+                { id: 'sniper_scope', name: 'Sniper Scope', compatibility: ['AR', 'MMR', 'SR'] },
+                { id: 'thermal_scope', name: 'Thermal Scope', compatibility: ['AR', 'MMR', 'SR'] },
+                { id: 'iron_sight', name: 'Iron Sight', compatibility: ['SR'] },
+                { id: 'pistol_scope', name: 'Pistol Scope', compatibility: ['P'] }
+            ]
+        },
+
+        // === MUZZLES ===
+        muzzles: {
+            name: 'Muzzles',
+            category: 'muzzles',
+            items: [
+                { id: 'fire_rate_brake', name: 'Fire Rate Brake', compatibility: ['AR', 'SMG', 'SG', 'LMG', 'MMR', 'SR', 'P'] },
+                { id: 'recoil_suppressor', name: 'Recoil Suppressor', compatibility: ['AR', 'SMG', 'SG', 'LMG', 'MMR', 'SR', 'P'] },
+                { id: 'compensator', name: 'Compensator', compatibility: ['AR', 'SMG', 'LMG', 'MMR', 'SR', 'P'] },
+                { id: 'suppressor', name: 'Suppressor', compatibility: ['AR', 'SMG', 'SG', 'LMG', 'MMR', 'SR', 'P'] },
+                { id: 'muzzle_brake', name: 'Muzzle Brake', compatibility: ['AR', 'SMG', 'SG', 'LMG', 'MMR', 'SR', 'P'] },
+                { id: 'mobility_spread_muzzle', name: 'Mobility Spread Muzzle', compatibility: ['AR', 'SMG', 'LMG', 'MMR', 'SR', 'P'], exclude: ['XR-3 ION'] },
+                { id: 'firepower_suppressor', name: 'Firepower Suppressor', compatibility: ['AR', 'SMG', 'SG', 'LMG', 'MMR', 'SR', 'P'] },
+                { id: 'ads_choke', name: 'ADS Choke', compatibility: ['SG'] },
+                { id: 'hip_spread_choke', name: 'Hip Spread Choke', compatibility: ['SG'] },
+                { id: 'mobility_spread_muzzle', name: 'MFS 3x3 Compensator', compatibility: ['XR-3 ION'] },
+                { id: 'full_auto_muzzle', name: 'Full-Auto Muzzle', compatibility: ['1911'] }
+            ]
+        },
+
+        // === BARRELS ===
+        barrels: {
+            name: 'Barrels',
+            category: 'barrels',
+            items: [
+                { id: 'hyperburst_barrel', name: 'Hyperburst Barrel', compatibility: ['AN-94'] },
+                { id: 'control_barrel', name: 'Control Barrel', compatibility: ['AR'] },
+                { id: 'long_barrel', name: 'Long Barrel', compatibility: ['AR', 'SMG', 'SG', 'LMG', 'MMR', 'SR', 'P'], exclude: ['VS Recon'] },
+                { id: 'hybrid_barrel', name: 'Hybrid Barrel', compatibility: ['AR', 'SMG', 'SG', 'LMG', 'MMR', 'SR', 'P'], exclude: ['M10 Breacher', 'KRS-7.62', 'Hawker HX'] },
+                { id: 'hybrid_barrel_prestige', name: 'MFS 25" Votive Barrel', compatibility: ['Hawker HX'] },
+                { id: 'short_barrel', name: 'Short Barrel', compatibility: ['AR', 'SMG', 'SG', 'LMG', 'MMR', 'SR', 'P'], exclude: ['X9 Maverick', 'MPC-25', 'M10 Breacher'] },
+                { id: 'mid_range_barrel', name: 'Mid Range Barrel', compatibility: ['AR', 'SMG', 'Sokol 545', 'Mk.78'], exclude: ['AN-94'] },
+                { id: 'integrated_suppressor', name: 'Integrated Suppressor', compatibility: ['MK35 ISR'] },
+                { id: 'ak_27_battle_scar', name: 'AK-27 Battle-Scar Conversion', compatibility: ['AK-27'] },
+                { id: 'mxr_17_anvl', name: 'MXR-17 ANVL Conversion', compatibility: ['MXR-17'] },
+                { id: 'x9_maverick_javelin', name: 'X9 Maverick Javelin Assembly', compatibility: ['X9 Maverick'] },
+                { id: 'quick_load_barrel', name: 'Quick Load Barrel', compatibility: ['X9 Maverick', 'M10 Breacher'] },
+                { id: 'bullet_velocity_barrel', name: 'Bullet Velocity Barrel', compatibility: ['SG', 'MMR', 'SR', 'P'], exclude: ['M10 Breacher', 'Echo 12'] },
+                { id: 'damage_barrel', name: 'Damage Barrel', compatibility: ['SG', 'SR', 'P'], exclude: ['M10 Breacher', 'VS Recon', 'Shadow SK', 'Jäger 45'] },
+                { id: 'handling_control_barrel', name: 'Handling Control Barrel', compatibility: ['SMG'], exclude: ['Razor 9mm']  },
+                { id: 'stable_bullet_velocity_barrel_prestige', name: '12" MFS Sidewinder Barrel', compatibility: ['Razor 9mm'] },
+                { id: 'stabilization_barrel', name: 'Stabilization Barrel', compatibility: ['XM325'] },
+                { id: 'aiming_speed_barrel', name: 'Aiming Speed Barrel', compatibility: ['VS Recon'] },
+                { id: 'sprint_to_fire_barrel', name: 'Sprint to Fire Barrel', compatibility: ['M10 Breacher'] },
+                { id: 'heavy_long_barrel', name: 'Heavy Long Barrel', compatibility: ['M10 Breacher'] },
+                { id: 'heavy_barrel', name: 'Heavy Barrel', compatibility: ['M10 Breacher'] },
+                { id: 'stable_velocity_barrel', name: '18" MFS Greyhound Barrel', compatibility: ['Echo 12'] },
+                { id: 'maddox_burst_barrel', name: 'Maddox Burst Barrel', compatibility: ['Maddox RFB', 'M15 MOD 0'] },
+                { id: 'control_barrel_lmg', name: 'Control Barrel', compatibility: ['LMG', 'MMR', 'Shadow SK', 'VS Recon'] },
+                { id: 'penetration_barrel', name: '15" MFS Incursion Barrel', compatibility: ['KRS-7.62'] },
+                { id: 'short_jump_barrel', name: 'Short Jump Barrel', compatibility: ['MPC-25'] },
+                { id: 'scull_splitter_barrel', name: 'Scull Splitter Barrel', compatibility: ['Jager 45'] },
+                { id: 'emp_gun', name: 'EMP Gun', compatibility: ['Jager 45'] },
+                { id: 'chassis', name: 'Chassis', compatibility: ['Velox 5.7'] },
+                { id: 'jump_shot_barrel', name: 'Jump Shot Barrel+', compatibility: ['Velox 5.7'] },
+                { id: 'm8a1_autostrike_x8_conversion', name: 'M8A1 AutoStrike-X8 Conversion', compatibility: ['M8A1'] },
+                { id: 'scull_splitter_barrel', name: '9.6" MFS Vital Ace Barrel', compatibility: ['Jäger 45'] },
+                { id: 'emp_gun', name: 'Jäger 45 Grid-Breaker kit', compatibility: ['Jäger 45'] }
+            ]
+        },
+
+        // === UNDERBARRELS ===
+        underbarrels: {
+            name: 'Underbarrels',
+            category: 'underbarrels',
+            items: [
+                { id: 'bullet_deviation_foregrip', name: 'Bullet Deviation Foregrip', compatibility: ['AR', 'SMG', 'SG', 'LMG', 'KRS-7.62', 'M8A1', 'M34 Novaline', 'Velox 5.7'], exclude: ['Dravec 45', 'Echo 12'] },
+                { id: 'stable_focus_underbarrel', name: 'Stable Focus Underbarrel', compatibility: ['AR', 'SMG', 'KRS-7.62', 'Swordfish A1', 'SR'], exclude: ['Maddox RFB', 'M15 MOD 0', 'AK-27', 'MXR-17', 'X9 Maverick', 'DS20 Mirage', 'Peacekeeper Mk1', 'REV-46', 'Kogot-7',
+                    'Ryden 45K', 'RK-9', 'Razor 9mm', 'Dravec 45', 'MPC-25', 'Echo 12', 'Shadow SK', 'XR-3 ION'] },
+                { id: 'precision_foregrip', name: 'Precision Foregrip', compatibility: ['Maddox RFB', 'SMG', 'SG', 'Velox 5.7'], exclude: ['Dravec 45', 'Echo 12', 'Akita'] },
+                { id: 'launcher_standard', name: 'Launcher - Standard', compatibility: ['AR', 'M8A1', 'M34 Novaline'], exclude: ['DS20 Mirage'] },
+                { id: 'launcher_drill_charge', name: 'Launcher - Drill Charge', compatibility: ['AR', 'M8A1', 'M34 Novaline'], exclude: ['DS20 Mirage'] },
+                { id: 'steady_sway_handstop', name: 'Steady Sway Handstop', compatibility: ['AR', 'SMG', 'SG', 'LMG', 'MMR'], exclude: ['Dravec 45', 'Echo 12'] },
+                { id: 'launcher_high_explosive', name: 'Launcher - High Explosive', compatibility: ['AR', 'M8A1', 'M34 Novaline'], exclude: ['DS20 Mirage'] },
+                { id: 'mobility_foregrip', name: 'Mobility Foregrip', compatibility: ['AR', 'SMG', 'SG', 'Mk.78', 'KRS-7.62', 'Swordfish A1', 'M8A1', 'SR', 'Velox 5.7'], exclude: ['DS20 Mirage', 'Dravec 45', 'M10 Breacher', 'Echo 12', 'Akita', 'Shadow SK', 'XR-3 ION'] },
+                { id: 'launcher_smoke', name: 'Launcher - Smoke', compatibility: ['AR', 'M8A1', 'M34 Novaline'], exclude: ['DS20 Mirage'] },
+                { id: 'recoil_control_foregrip', name: 'Recoil Control Foregrip', compatibility: ['AR', 'SMG', 'SG', 'LMG', 'KRS-7.62', 'Swordfish A1', 'SR'], exclude: ['DS20 Mirage', 'Dravec 45', 'M10 Breacher', 'Echo 12', 'Akita', 'Shadow SK', 'XR-3 ION'] },
+                { id: 'mobile_recoil_foregrip', name: 'Mobile Recoil Foregrip', compatibility: ['AR', 'SMG', 'SG', 'LMG', 'MMR', 'SR', 'Velox 5.7'], exclude: ['Dravec 45', 'Echo 12', 'Akita', 'Warden 308', 'Shadow SK', 'XR-3 ION'] },
+                { id: 'mobile_recoil_handstop', name: 'Mobile Recoil Handstop', compatibility: ['DS20 Mirage', 'Carbon 57', 'Akita'] },
+                { id: '20mm_burst_launcher', name: 'Mirage Tandem Launcher', compatibility: ['DS20 Mirage'] },
+                { id: 'ds20_mirage_dual_fire_kit', name: 'DS20 Mirage Dual Fire Kit', compatibility: ['DS20 Mirage'] },
+                { id: 'rapid_stable_handstop', name: 'Rapid Stable Handstop', compatibility: ['RK-9', 'Razor 9mm'] },
+                { id: 'mobile_focus_handstop_prestige', name: 'MFS Enhance-32 Handstop', compatibility: ['M34 Novaline'] },
+                { id: 'rapid_stable_handstop_prestige', name: 'MFS Ironlung Hadstop', compatibility: ['RK-9'] },
+                { id: 'stable_focus_handstop', name: 'Stable Focus Handstop', compatibility: ['Maddox RFB', 'M15 MOD 0', 'AK-27', 'MXR-17', 'X9 Maverick', 'DS20 Mirage', 'Peacekeeper Mk1', 'REV-46', 'Kogot-7', 'Ryden 45K', 'Razor 9mm', 'MPC-25', 'Sokol 545', 'Mk.78',
+                    'XM325', 'M8A1'] },
+                { id: 'mobility_handstop', name: 'Mobility Handstop', compatibility: ['AK-27', 'DS20 Mirage', 'M10 Breacher', 'M34 Novaline', 'Akita', 'Sokol 545', 'XM325'] },
+                { id: 'crossbar', name: 'Crossbar', compatibility: ['LMG'] },
+                { id: 'recoil_control_handstop', name: 'Recoil Control Handstop', compatibility: ['DS20 Mirage', 'M10 Breacher', 'M34 Novaline', 'Akita', 'M8A1', 'M34 Novaline'] },
+                { id: 'aim_motion_stability_guard', name: 'MFS Ballast Guard Stabilizer', compatibility: ['Stryder 300'] },
+                { id: 'mobility_underbarrel', name: 'Mobility Underbarrel', compatibility: ['Hawker HX'] },
+                { id: 'mobile_recoil_underbarrel', name: 'Mobile Recoil Underbarrel', compatibility: ['Hawker HX'] },
+                { id: 'recoil_control_underbarrel', name: 'Recoil Control Underbarrel', compatibility: ['Hawker HX'] },
+                { id: 'steady_sway_underbarrel', name: 'Steady Sway Underbarrel', compatibility: ['Hawker HX'] },
+                { id: 'stable_focus_underbarrel', name: 'Stable Focus Underbarrel', compatibility: ['Hawker HX'] },
+                { id: 'stable_focus_handguard', name: 'Stable Focus Handguard', compatibility: ['XR-3 ION'] },
+                { id: 'stable_focus_handguard', name: 'MFS R-Stop Handguard', compatibility: ['VS Recon'] },
+                { id: 'mobility_handguard', name: 'Mobility Handguard', compatibility: ['VS Recon', 'XR-3 ION'] },
+                { id: 'mobile_recoil_handguard', name: 'Mobile Recoil Handguard', compatibility: ['VS Recon', 'XR-3 ION'] },
+                { id: 'recoil_control_handguard', name: 'Recoil Control Handguard', compatibility: ['VS Recon', 'XR-3 ION'] },
+                { id: 'steady_sway_handguard', name: 'Steady Sway Handguard', compatibility: ['VS Recon', 'XR-3 ION'] },
+                { id: 'xr3_ion_vulcan_minigun', name: 'XR-3 Ion Vulcan Minigun', compatibility: ['XR-3 ION'] }
+            ]
+        },
+
+        // === MAGAZINES ===
+        magazines: {
+            name: 'Magazines',
+            category: 'magazines',
+            items: [
+                { id: 'flip_mag', name: 'Flip Mag', compatibility: ['AR', 'REV-46', 'Sturmwolf 45', 'Sturmwolf 45', 'Ryden 45K', 'RK-9', 'SG-12', 'M8A1', 'M34 Novaline'], exclude: ['VX Compact', 'X9 Maverick'] },
+                { id: 'fast_mag_i', name: 'Fast Mag I', compatibility: ['AR', 'SMG', 'SG', 'LMG', 'MMR', 'SR', 'P'], exclude: ['X9 Maverick', 'CBRS-3', 'Sturmwolf 45'], exclude: ['Swordfish A1'] },
+                { id: 'fast_mag_i_prestige_mxr', name: 'MFS Semi-Auto Fast Mag', compatibility: ['MXR-17'] },
+                { id: 'fast_mag_i_prestige_sturmwolf45', name: 'MFS Tigris .40 Cal Mag', compatibility: ['Sturmwolf 45'] },
+                { id: 'extended_mag_i', name: 'Extended Mag I', compatibility: ['AR', 'SMG', 'SG', 'LMG', 'MMR', 'SR', 'P'], exclude: ['X9 Maverick', 'CBRS-3', 'Carbon 57', 'Swordfish A1'] },
+                { id: 'extended_mag_ii', name: 'Extended Mag II', compatibility: ['AR', 'SMG', 'SG', 'LMG', 'MMR', 'SR', 'P'], exclude: ['X9 Maverick', 'CBRS-3', 'Echo 12', 'Swordfish A1', 'M34 Novaline'] },
+                { id: '30_rnd_fast_ext_mag', name: '30 Rnd Fast Ext. Mag', compatibility: ['VX Compact'] },
+                { id: '75_round_extended_mag', name: '75 Round Extended Mag', compatibility: ['CBRS-3'] },
+                { id: 'auto_rechamber_mag', name: 'Auto-Rechamber Mag', compatibility: ['CBRS-3'] },
+                { id: 'fast_mag_ii', name: 'Fast Mag II', compatibility: ['Kogot-7', 'Razor 9mm', 'MPC-25', 'Akita', 'Sokol 545', 'KRS-7.62', 'Hawker HX', 'Shadow SK'] },
+                { id: '3d_print_mag', name: '3D Print Mag', compatibility: ['Carbon 57'] },
+                { id: 'extended_mag_i_prestige', name: 'MFS Renown Plus Mag', compatibility: ['Carbon 57'] },
+                { id: 'belt_fed', name: 'Belt Fed', compatibility: ['LMG'], exclude: ['Mk.78'] },
+                { id: 'belt_fed_prestige', name: 'MFS Heatshield Belt Fed', compatibility: ['Mk.78'] },
+                { id: '36_round_fast_mag', name: '36 Round Fast Mag', compatibility: ['Swordfish A1'] },
+                { id: '32_round_fast_mag', name: '32 Round Fast Mag', compatibility: ['Swordfish A1'] },
+                { id: '48_round_extended_mag', name: '48 Round Extended Mag', compatibility: ['Swordfish A1'] },
+                { id: '60_round_drum_mag', name: '60 Round Drum Mag', compatibility: ['Swordfish A1'] },
+                { id: 'extended_mag_ii_prestige', name: 'Extended Mag II', compatibility: ['CODA 9'] }
+            ]
+        },
+
+        // === REAR GRIPS ===
+        rearGrips: {
+            name: 'Rear Grips',
+            category: 'rearGrips',
+            items: [
+                { id: 'quickdraw_grip', name: 'Quickdraw Grip', compatibility: ['AR', 'SMG', 'SG', 'LMG', 'MMR', 'SR', 'P'], exclude: ['KRS-7.62'] },
+                { id: 'mobile_quickdraw_grip', name: 'Mobile Quickdraw Grip', compatibility: ['AR', 'SMG', 'SG', 'LMG', 'MMR', 'SR', 'P'], exclude: ['KRS-7.62'] },
+                { id: 'stabilization_grip', name: 'Stabilization Grip', compatibility: ['AR', 'SMG', 'SG', 'LMG', 'MMR', 'SR', 'P'], exclude: ['KRS-7.62'] },
+                { id: 'sprint_to_fire_grip', name: 'Sprint to Fire Grip', compatibility: ['AR', 'SMG', 'SG', 'LMG', 'MMR', 'SR', 'P'], exclude: ['KRS-7.62'] },
+                { id: 'accuracy_grip', name: 'Accuracy Grip', compatibility: ['AR', 'SMG', 'SG', 'LMG', 'MMR', 'SR', 'P'], exclude: ['KRS-7.62'] }
+            ]
+        },
+
+        // === STOCKS ===
+        stocks: {
+            name: 'Stocks',
+            category: 'stocks',
+            items: [
+                { id: 'mobility_stock', name: 'Mobility Stock', compatibility: ['AR', 'SMG', 'SG', 'LMG', 'MMR', 'Stryder 300', 'Hawker HX', 'XR-3 ION'], exclude: ['REV-46', 'Razor 9mm', 'SG-12', 'M10 Breacher'] },
+                { id: 'control_stock', name: 'Control Stock', compatibility: ['AR', 'SMG', 'SG', 'LMG', 'MMR', 'Stryder 300', 'Hawker HX'], exclude: ['Peacekeeper Mk1', 'CBRS-3', 'VST', 'REV-46', 'Razor 9mm', 'SG-12', 'M10 Breacher', 'Akita', 'Shadow SK', 'XR-3 ION'] },
+                { id: 'ads_movement_stock', name: 'ADS Movement Stock', compatibility: ['AR', 'SMG', 'SG', 'LMG', 'MMR', 'Stryder 300', 'Hawker HX', 'XR-3 ION'], exclude: ['CBRS-3', 'VST', 'REV-46', 'Razor 9mm', 'SG-12', 'XR-3 ION'] },
+                { id: 'tactical_spread_stock', name: 'Tactical Spread Stock', compatibility: ['AR', 'SMG', 'SG', 'LMG', 'MMR', 'Stryder 300', 'Hawker HX', 'Shadow SK', 'XR-3 ION'], 
+                    exclude: ['CBRS-3', 'VST', 'REV-46', 'Ryden 45K', 'Razor 9mm', 'Carbon 57', 'SG-12', 'M10 Breacher'] },
+                { id: 'heavy_stock', name: 'Heavy Stock', compatibility: ['AR', 'SMG', 'SG', 'LMG', 'MMR'], exclude: ['REV-46', 'SG-12', 'M10 Breacher', 'Echo 12', 'Akita', 'Hawker HX'] },
+                { id: 'akimbo', name: 'Akimbo', compatibility: ['VST', '1911', 'Jager 45', 'Velox 5.7', 'CODA 9'] },
+                { id: 'akimbo_prestige', name: 'MFS Kogot-7 Akimbo', compatibility: ['Kogot-7'] },
+                { id: 'flip_stock', name: 'Flip Stock', compatibility: ['REV-46'] },
+                { id: 'mobility_pad', name: 'Mobility Pad', compatibility: ['SMG', 'SG-12', 'VS Recon'], exclude: ['REV-46', 'Sturmwolf 45', 'Ryden 45K', 'RK-9', 'Dravec 45', 'MPC-25'] },
+                { id: 'control_pad', name: 'Control Pad', compatibility: ['SG-12', 'SMG'], exclude: ['REV-46', 'Sturmwolf 45', 'Ryden 45K', 'RK-9', 'Dravec 45', 'MPC-25'] },
+                { id: 'ads_movement_pad', name: 'ADS Movement Pad', compatibility: ['SMG', 'SG-12', 'VS Recon'], exclude: ['REV-46', 'Sturmwolf 45', 'Ryden 45K', 'RK-9', 'Dravec 45', 'MPC-25'] },
+                { id: 'tactical_spread_pad', name: 'Tactical Spread Pad', compatibility: ['SMG', 'SG-12', 'VS Recon'], exclude: ['REV-46', 'Sturmwolf 45', 'Ryden 45K', 'RK-9', 'Dravec 45', 'MPC-25'] },
+                { id: 'heavy_pad', name: 'Heavy Pad', compatibility: ['SMG'], exclude: ['CBRS-3', 'VST', 'Sturmwolf 45', 'Ryden 45K', 'RK-9', 'Razor 9mm', 'Dravec 45', 'MPC-25'] },
+                { id: 'mobile_flinch_pad', name: 'Mobile Flinch Pad', compatibility: ['SG-12', 'VS Recon'] },
+                { id: 'tactical_jump_stock_prestige', name: 'Tactical Jump Stock', compatibility: ['Ryden 45K'] },
+                { id: 'hybrid_dual_stock', name: 'Hybrid Dual Stock', compatibility: ['CODA 9'] },
+                { id: 'tactical_control_stock_prestige', name: 'Tactical Control Stock+', compatibility: ['Peacekeeper Mk1'] },
+                { id: 'mobile_tactical_stock_prestige', name: 'Mobile Tactical Stock+', compatibility: ['M8A1'] },
+                { id: 'level_action', name: 'M10 Breacher Argus Lever', compatibility: ['M10 Breacher'] },
+                { id: 'primed_stock', name: 'Primed Stock', compatibility: ['M10 Breacher'] },
+                { id: 'aim_speed_stock', name: 'Aim Speed Stock', compatibility: ['M10 Breacher'] },
+                { id: 'locomotion_stock', name: 'Locomotion Stock', compatibility: ['M10 Breacher'] },
+                { id: 'marathon_ready_stock', name: 'Marathon-Ready Stock', compatibility: ['M10 Breacher'] },
+                { id: 'pro_move_sprint_stock_prestige', name: 'MFS XK-Lite Stock', compatibility: ['M10 Breacher'] },
+                { id: 'mobile_flinch_stock', name: 'Mobile Flinch Stock', compatibility: ['Echo 12', 'Akita', 'Stryder 300', 'Hawker HX', 'Shadow SK', 'XR-3 ION'] },
+                { id: 'smg_conversion_kit', name: 'Mk.78 Lightframe PDW Conversion', compatibility: ['Mk.78'] },
+                { id: 'xm325_titan_wield', name: 'XM325 Titan Wield', compatibility: ['XM325'] },
+                { id: 'akita_scorchlink_akimbo', name: 'Akita ScorchLink Akimbo', compatibility: ['Akita'] },
+                { id: 'mobility_handling_stock', name: 'MFS GD-7 Shock Stock', compatibility: ['Akita'] },
+                { id: 'flinch_resist_pad', name: 'Flinch Resist Pad', compatibility: ['VS Recon'] },
+                { id: 'flinch_resist_stock', name: 'Flinch Resist Stock', compatibility: ['Shadow SK', 'XR-3 ION'] },
+                { id: 'quickdraw_grip_m10', name: 'Quickdraw Grip', compatibility: ['M10 Breacher'] }
+            ]
+        },
+
+        // === COMBS ===
+        combs: {
+            name: 'Combs',
+            category: 'combs',
+            items: [
+                { id: 'quickdraw_grip_comb', name: 'Quickdraw Grip', compatibility: ['KRS-7.62'] },
+                { id: 'sprint_to_fire_grip_comb', name: 'Sprint to Fire Grip', compatibility: ['KRS-7.62'] },
+                { id: 'mobile_quickdraw_grip_comb', name: 'Mobile Quickdraw Grip', compatibility: ['KRS-7.62'] },
+                { id: 'stabilization_grip_comb', name: 'Stabilization Grip', compatibility: ['KRS-7.62'] },
+                { id: 'accuracy_grip_comb', name: 'Accuracy Grip', compatibility: ['KRS-7.62'] },
+                { id: 'recoil_control_riser', name: 'Recoil Control Riser', compatibility: ['Warden 308', 'Shadow SK'] },
+                { id: 'steady_sway_riser', name: 'Steady Sway Riser', compatibility: ['Warden 308', 'Shadow SK'] },
+                { id: 'stable_focus_riser', name: 'Stable Focus Riser', compatibility: ['Warden 308', 'Shadow SK'] },
+                { id: 'mobility_riser', name: 'Mobility Riser', compatibility: ['Warden 308', 'Shadow SK'] },
+                { id: 'mobile_recoil_riser', name: 'Mobile Recoil Riser', compatibility: ['Warden 308', 'Shadow SK'] },
+                { id: 'warden_308_badlands_pistol_kit', name: 'Warden 308 Badlands Pistol Kit', compatibility: ['Warden 308'] },
+                { id: 'shadow_sk_masterkey', name: 'Shadow SK 12-gauge Masterkey', compatibility: ['Shadow SK'] },
+            ]
+        },
+
+        // === LASERS ===
+        lasers: {
+            name: 'Lasers',
+            category: 'lasers',
+            items: [
+                { id: 'steady_aim_laser', name: 'Steady Aim Laser', compatibility: ['AR', 'SMG', 'SG', 'LMG', 'MMR', 'SR', 'P'] },
+                { id: 'strelok_laser', name: 'Strelok Laser', compatibility: ['AR', 'SMG', 'SG', 'LMG', 'MMR', 'SR', 'P'], exclude: ['Voyak KT-3'] },
+                { id: 'handling_laser', name: 'Handling Laser', compatibility: ['AR', 'SMG', 'SG', 'LMG', 'MMR', 'SR', 'P'] },
+                { id: 'tactical_laser', name: 'Tactical Laser', compatibility: ['AR', 'SMG', 'SG', 'LMG', 'MMR', 'SR', 'P'] },
+                { id: 'stable_laser', name: 'Stable Laser', compatibility: ['AR', 'SMG', 'SG', 'LMG', 'MMR', 'SR', 'P'], exclude: ['Dravec 45', 'XM325'] },
+                { id: 'strelok_laser_prestige', name: 'Strelok Laser', compatibility: ['Voyak KT-3'] },
+                { id: 'mobile_range_laser', name: 'MFS Agile Laser Pro', compatibility: ['Dravec 45'] },
+                { id: 'no_spread_laser', name: 'MPC-25 ContraBloom Laser', compatibility: ['MPC-25'] },
+                { id: 'stable_range_turret_laser', name: 'MFS Motion Strike Laser', compatibility: ['XM325'] },
+                { id: 'binary_fire_light_prestige', name: 'MFS Pulse Fire Taclight', compatibility: ['SG-12'] },
+                { id: 'steady_aim_laser_prestige_sk', name: 'MFS Convergence Box Laser', compatibility: ['Shadow SK'] },
+            ]
+        },
+
+        // === FIRE MODS ===
+        fireMods: {
+            name: 'Fire Mods',
+            category: 'fireMods',
+            items: [
+                { id: 'rapid_fire', name: 'Rapid Fire', compatibility: ['AR', 'SMG', 'SG', 'LMG', 'MMR', 'SR', 'P'], exclude: ['AK-27', 'Sokol 545', 'Warden 308'] },
+                { id: 'fmj_ammo', name: 'FMJ Ammo', compatibility: ['AR', 'SMG', 'LMG', 'MMR', 'SR', 'P'], exclude: ['EGRT-17', 'M15 MOD 0'] },
+                { id: 'recoil_springs', name: 'Recoil Springs', compatibility: ['AR', 'SMG', 'SG', 'LMG', 'MMR', 'SR', 'P'] },
+                { id: 'high_velocity_ammo', name: 'High-Velocity Ammo', compatibility: ['AR', 'SMG', 'LMG', 'MMR', 'SR', 'P'], exclude: ['EGRT-17'] },
+                { id: 'rapid_fire_prestige', name: 'Enhanced Cycle System', compatibility: ['AK-27'] },
+                { id: 'ammo_conversion_prestige', name: 'MFS 5.56M Defense Conversion', compatibility: ['VST'] },
+                { id: 'ricochet_ammo_prestige', name: 'MFS Heated Echo Rounds', compatibility: ['EGRT-17'] },
+                { id: 'fmj_ammo_prestige', name: 'MFS 5.56 NATO FMJ', compatibility: ['M15 MOD 0'] },
+                { id: 'rapid_fire_burst', name: 'MFS 48-Dread Burst Mod', compatibility: ['Sokol 545'] },
+                { id: '5_round_burst_prestige', name: 'MFS Penta Burst Mod', compatibility: ['Swordfish A1'] },
+                { id: 'rapid_fire_trigger_prestige', name: 'MFS Snap Trigger', compatibility: ['Warden 308'] },
+                { id: 'fracture_ammo', name: 'Ryden 45K Sweeper Rig', compatibility: ['Ryden 45K'] },
+                { id: 'razor_9mm_wildfire_conversion', name: 'Razor 9mm Wildfire Conversion', compatibility: ['Razor 9mm'] },
+                { id: 'shotgun_slugs', name: 'Shotgun Slugs', compatibility: ['SG'] },
+                { id: 'incendiary_ammo', name: 'Incendiary Ammo', compatibility: ['SG'] },
+                { id: 'launcher_conversion_kit', name: 'Echo-12 Backlash Launcher', compatibility: ['Echo 12'] }
+            ]
+        }
+    }
+    // ============================================================
+    // СОСТОЯНИЕ
+    // ============================================================
+    let currentWeaponCategory = 'AR';
+    let currentWeaponName = 'AN-94';
+    const selectedAttachments = {};
+
+    // ============================================================
+    // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+    // ============================================================
+    function getWeaponList() {
+        const list = [];
+        for (const [cat, data] of Object.entries(WEAPONS_MWII)) {
+            data.weapons.forEach(w => list.push({ category: cat, name: w }));
+        }
+        return list;
+    }
+
+    function findAttachmentById(id) {
+        for (const cat of Object.keys(ATTACHMENTS_MWII)) {
+            for (const it of ATTACHMENTS_MWII[cat].items) {
+                if (it.id === id) return it;
+            }
+        }
+        return null;
+    }
+
+    function getSelectedAttachmentsArray() {
+        const result = [];
+        for (const cat of Object.keys(selectedAttachments)) {
+            const att = findAttachmentById(selectedAttachments[cat]);
+            if (att) result.push(att);
+        }
+        return result;
+    }
+
+    function getAttachmentCategory(attId) {
+        for (const [catKey, catData] of Object.entries(ATTACHMENTS_MWII)) {
+            for (const item of catData.items) {
+                if (item.id === attId) return catKey;
+            }
+        }
+        return null;
+    }
+
+    // ============================================================
+    // ФУНКЦИИ СОВМЕСТИМОСТИ (полная версия)
+    // ============================================================
+
+    function isAttachmentBaseCompatible(attachment, weaponCategory, weaponName) {
+        if (!attachment || !weaponCategory) return false;
+        
+        if (attachment.exclude && Array.isArray(attachment.exclude)) {
+            if (weaponName && attachment.exclude.includes(weaponName)) return false;
+            if (attachment.exclude.includes(weaponCategory)) return false;
+        }
+        
+        if (attachment.compatibility === 'all') return true;
+        if (Array.isArray(attachment.compatibility)) {
+            if (attachment.compatibility.includes(weaponCategory)) return true;
+            if (weaponName && attachment.compatibility.includes(weaponName)) return true;
+            return false;
+        }
+        if (typeof attachment.compatibility === 'string') {
+            return attachment.compatibility === weaponCategory || 
+                   (weaponName && attachment.compatibility === weaponName);
+        }
+        return false;
+    }
+
+    function isLockedByOther(attachment, weaponName, currentAttachments) {
+        if (!attachment.lockedWith) return false;
+        if (!weaponName) return false;
+        
+        const lockedAttachments = attachment.lockedWith[weaponName];
+        if (!lockedAttachments) return false;
+        
+        return lockedAttachments.some(lockedId =>
+            currentAttachments.some(att => att.id === lockedId)
+        );
+    }
+
+    function checkRequirement(attachment, weaponName, currentAttachments) {
+        if (attachment.requires) {
+            if (typeof attachment.requires === 'string') {
+                return currentAttachments.some(att => att.id === attachment.requires);
+            }
+            if (typeof attachment.requires === 'object' && weaponName) {
+                const required = attachment.requires[weaponName];
+                if (required) {
+                    if (Array.isArray(required)) {
+                        return required.some(reqId => currentAttachments.some(att => att.id === reqId));
+                    }
+                    return currentAttachments.some(att => att.id === required);
+                }
+            }
+        }
+        
+        if (attachment.weaponRequirements && weaponName) {
+            const requiredAttachments = attachment.weaponRequirements[weaponName];
+            if (requiredAttachments) {
+                if (Array.isArray(requiredAttachments)) {
+                    return requiredAttachments.some(reqId => currentAttachments.some(att => att.id === reqId));
+                }
+                return currentAttachments.some(att => att.id === requiredAttachments);
+            }
+        }
+        
+        return true;
+    }
+
+    function hasForbiddenWith(attachment, weaponName, currentAttachments) {
+        if (!attachment.forbiddenWith || !weaponName) return false;
+        
+        const forbiddenAttachments = attachment.forbiddenWith[weaponName];
+        if (!forbiddenAttachments) return false;
+        
+        return forbiddenAttachments.some(forbiddenId =>
+            currentAttachments.some(att => att.id === forbiddenId)
+        );
+    }
+
+    function hasConflictWithAny(attId, currentAttachments) {
+        const attachments = currentAttachments || getSelectedAttachmentsArray();
+        for (const att of attachments) {
+            if (att.id !== attId) {
+                if (hasConflict(attId, att.id)) return true;
+            }
+        }
+        return false;
+    }
+
+    function hasConflict(attId1, attId2) {
+        if (!attId1 || !attId2) return false;
+        let a1 = null, a2 = null;
+        for (const cat of Object.keys(ATTACHMENTS_MWII)) {
+            const items = ATTACHMENTS_MWII[cat].items;
+            for (const it of items) {
+                if (it.id === attId1) a1 = it;
+                if (it.id === attId2) a2 = it;
+            }
+        }
+        if (!a1 || !a2) return false;
+        
+        const checkConflicts = (a, b) => {
+            if (!a.conflicts) return false;
+            
+            if (typeof a.conflicts === 'object' && a.conflicts !== null && !Array.isArray(a.conflicts)) {
+                if (a.conflicts[currentWeaponName]) {
+                    const conflictsList = a.conflicts[currentWeaponName];
+                    for (const conflict of conflictsList) {
+                        if (conflict === b.id) return true;
+                        if (conflict.startsWith('category:')) {
+                            const cat = conflict.replace('category:', '');
+                            for (const [catKey, catData] of Object.entries(ATTACHMENTS_MWII)) {
+                                if (catData.category === cat || catKey === cat) {
+                                    if (catData.items.some(item => item.id === b.id)) return true;
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                if (a.conflicts[currentWeaponCategory]) {
+                    const conflictsList = a.conflicts[currentWeaponCategory];
+                    for (const conflict of conflictsList) {
+                        if (conflict === b.id) return true;
+                        if (conflict.startsWith('category:')) {
+                            const cat = conflict.replace('category:', '');
+                            for (const [catKey, catData] of Object.entries(ATTACHMENTS_MWII)) {
+                                if (catData.category === cat || catKey === cat) {
+                                    if (catData.items.some(item => item.id === b.id)) return true;
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                return false;
+            }
+            
+            for (const c of a.conflicts) {
+                if (c === b.id) return true;
+                if (c.startsWith('category:')) {
+                    const cat = c.replace('category:', '');
+                    for (const [catKey, catData] of Object.entries(ATTACHMENTS_MWII)) {
+                        if (catData.category === cat || catKey === cat) {
+                            if (catData.items.some(item => item.id === b.id)) return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        };
+        
+        if (checkConflicts(a1, a2)) return true;
+        if (checkConflicts(a2, a1)) return true;
+        return false;
+    }
+
+    function isAttachmentCompatibleMWII(attachment, weaponCategory, weaponName, currentAttachments) {
+        if (!attachment || !weaponCategory) return false;
+        
+        if (!isAttachmentBaseCompatible(attachment, weaponCategory, weaponName)) return false;
+        if (isLockedByOther(attachment, weaponName, currentAttachments)) return false;
+        if (!checkRequirement(attachment, weaponName, currentAttachments)) return false;
+        if (hasForbiddenWith(attachment, weaponName, currentAttachments)) return false;
+        
+        if (hasConflictWithAny(attachment.id, currentAttachments)) return false;
+        
+        return true;
+    }
+
+    // ============================================================
+    // ФУНКЦИИ ДЛЯ РАБОТЫ С ЗАВИСИМОСТЯМИ
+    // ============================================================
+
+    function getModuleDependencies(attachment) {
+        const dependencies = [];
+        
+        if (attachment.requires) {
+            if (typeof attachment.requires === 'string') {
+                dependencies.push(attachment.requires);
+            } else if (typeof attachment.requires === 'object') {
+                for (const [weapon, reqs] of Object.entries(attachment.requires)) {
+                    if (weapon === currentWeaponName) {
+                        if (Array.isArray(reqs)) {
+                            dependencies.push(...reqs);
+                        } else {
+                            dependencies.push(reqs);
+                        }
+                    }
+                }
+            }
+        }
+        
+        if (attachment.weaponRequirements && currentWeaponName) {
+            const reqs = attachment.weaponRequirements[currentWeaponName];
+            if (reqs) {
+                if (Array.isArray(reqs)) {
+                    dependencies.push(...reqs);
+                } else {
+                    dependencies.push(reqs);
+                }
+            }
+        }
+        
+        return dependencies;
+    }
+
+    function dependsOn(attachment, parentId) {
+        const deps = getModuleDependencies(attachment);
+        return deps.includes(parentId);
+    }
+
+    function findDependentModules(parentId) {
+        const dependents = [];
+        for (const [catKey, catData] of Object.entries(ATTACHMENTS_MWII)) {
+            for (const att of catData.items) {
+                if (dependsOn(att, parentId)) {
+                    dependents.push(att.id);
+                }
+            }
+        }
+        return dependents;
+    }
+
+    function removeModuleWithDependencies(moduleId) {
+        const dependents = findDependentModules(moduleId);
+        
+        for (const [catKey, attId] of Object.entries(selectedAttachments)) {
+            if (attId === moduleId) {
+                delete selectedAttachments[catKey];
+            }
+        }
+        
+        for (const dependentId of dependents) {
+            for (const [catKey, attId] of Object.entries(selectedAttachments)) {
+                if (attId === dependentId) {
+                    delete selectedAttachments[catKey];
+                }
+            }
+        }
+    }
+
+    // ============================================================
+    // ОТРИСОВКА
+    // ============================================================
+    function render() {
+        const select = document.getElementById('weaponSelect');
+        const weaponList = getWeaponList();
+        select.innerHTML = '';
+        weaponList.forEach(w => {
+            const opt = document.createElement('option');
+            opt.value = w.category + '|' + w.name;
+            opt.textContent = `${w.name} (${WEAPONS_MWII[w.category].short})`;
+            if (w.category === currentWeaponCategory && w.name === currentWeaponName) opt.selected = true;
+            select.appendChild(opt);
+        });
+
+        const container = document.getElementById('categoriesContainer');
+        container.innerHTML = '';
+
+        for (const [catKey, catData] of Object.entries(ATTACHMENTS_MWII)) {
+            const block = document.createElement('div');
+            block.className = 'category-block';
+
+            const header = document.createElement('div');
+            header.className = 'category-header';
+            header.innerHTML = `<span>${catData.name}</span><span>${catData.items.length}</span>`;
+            block.appendChild(header);
+
+            const listDiv = document.createElement('div');
+            listDiv.className = 'attachment-list';
+
+            const items = catData.items;
+            if (!items.length) {
+                listDiv.innerHTML = '<div class="empty-state">нет модулей</div>';
+            } else {
+                const currentArray = getSelectedAttachmentsArray();
+                
+                const compatible = items.filter(a => 
+                    isAttachmentBaseCompatible(a, currentWeaponCategory, currentWeaponName)
+                );
+                
+                if (!compatible.length) {
+                    listDiv.innerHTML = '<div class="empty-state">нет совместимых модулей</div>';
+                } else {
+                    compatible.forEach(att => {
+                        const tag = document.createElement('span');
+                        tag.className = 'attachment-tag';
+                        
+                        const isActive = (selectedAttachments[catKey] === att.id);
+                        
+                        const isLocked = isLockedByOther(att, currentWeaponName, currentArray);
+                        const hasRequirements = !checkRequirement(att, currentWeaponName, currentArray);
+                        const hasForbidden = hasForbiddenWith(att, currentWeaponName, currentArray);
+                        const hasConflictWithSelected = hasConflictWithAny(att.id, currentArray);
+                        
+                        const isBlocked = !isActive && (isLocked || hasRequirements || hasForbidden || hasConflictWithSelected);
+                        
+                        if (isActive) tag.classList.add('active');
+                        if (isBlocked) tag.classList.add('blocked');
+                        
+                        if (!isBlocked) tag.classList.add('clickable');
+                        
+                        tag.textContent = att.name;
+
+                        if (isBlocked) {
+                            const indicator = document.createElement('span');
+                            indicator.className = 'conflict-indicator';
+                            indicator.textContent = '✕';
+                            tag.appendChild(indicator);
+                            
+                            if (isLocked) {
+                                const lockedAttachments = att.lockedWith[currentWeaponName];
+                                if (lockedAttachments) {
+                                    const lockName = findAttachmentById(lockedAttachments[0])?.name || lockedAttachments[0];
+                                    tag.title = `⛔ Заблокирован модулем: ${lockName}`;
+                                }
+                            } else if (hasRequirements) {
+                                if (att.requires) {
+                                    if (typeof att.requires === 'string') {
+                                        const reqName = findAttachmentById(att.requires)?.name || att.requires;
+                                        tag.title = `⛔ Требуется: ${reqName}`;
+                                    } else if (typeof att.requires === 'object' && currentWeaponName) {
+                                        const req = att.requires[currentWeaponName];
+                                        if (req) {
+                                            const reqName = findAttachmentById(req)?.name || req;
+                                            tag.title = `⛔ Требуется: ${reqName}`;
+                                        }
+                                    }
+                                } else if (att.weaponRequirements && currentWeaponName) {
+                                    const req = att.weaponRequirements[currentWeaponName];
+                                    if (req) {
+                                        const reqName = findAttachmentById(req)?.name || req;
+                                        tag.title = `⛔ Требуется: ${reqName}`;
+                                    }
+                                }
+                            } else if (hasForbidden) {
+                                const forbiddenAttachments = att.forbiddenWith[currentWeaponName];
+                                if (forbiddenAttachments) {
+                                    const forbidName = findAttachmentById(forbiddenAttachments[0])?.name || forbiddenAttachments[0];
+                                    tag.title = `⛔ Несовместим с: ${forbidName}`;
+                                }
+                            } else if (hasConflictWithSelected) {
+                                for (const att2 of currentArray) {
+                                    if (hasConflict(att.id, att2.id)) {
+                                        tag.title = `⛔ Конфликт с: ${att2.name}`;
+                                        break;
+                                    }
+                                }
+                            }
+                        } else if (isActive) {
+                            tag.title = '✔ Активно (кликните чтобы снять)';
+                        } else {
+                            tag.title = 'Кликните чтобы установить';
+                        }
+
+                        tag.addEventListener('click', () => {
+                            if (selectedAttachments[catKey] === att.id) {
+                                removeModuleWithDependencies(att.id);
+                                render();
+                                return;
+                            }
+                            
+                            const currentArray = getSelectedAttachmentsArray();
+                            
+                            if (!isAttachmentCompatibleMWII(att, currentWeaponCategory, currentWeaponName, currentArray)) {
+                                return;
+                            }
+                            
+                            // Проверяем, не пытаемся ли мы установить модуль в категорию, где уже есть другой
+                            // Если да - удаляем старый
+                            if (selectedAttachments[catKey]) {
+                                const oldAttId = selectedAttachments[catKey];
+                                // Проверяем зависимости
+                                const dependents = findDependentModules(oldAttId);
+                                for (const depId of dependents) {
+                                    for (const [cKey, aId] of Object.entries(selectedAttachments)) {
+                                        if (aId === depId) {
+                                            delete selectedAttachments[cKey];
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            selectedAttachments[catKey] = att.id;
+                            render();
+                        });
+
+                        listDiv.appendChild(tag);
+                    });
+                }
+            }
+
+            block.appendChild(listDiv);
+            container.appendChild(block);
+        }
+    }
+
+    // ============================================================
+    // ИНИЦИАЛИЗАЦИЯ
+    // ============================================================
+    document.addEventListener('DOMContentLoaded', () => {
+        const select = document.getElementById('weaponSelect');
+        const first = getWeaponList()[0];
+        if (first) {
+            currentWeaponCategory = first.category;
+            currentWeaponName = first.name;
+        }
+        render();
+
+        select.addEventListener('change', (e) => {
+            const [cat, name] = e.target.value.split('|');
+            if (cat && name) {
+                currentWeaponCategory = cat;
+                currentWeaponName = name;
+                for (const key of Object.keys(selectedAttachments)) delete selectedAttachments[key];
+                render();
+            }
+        });
+
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            for (const key of Object.keys(selectedAttachments)) delete selectedAttachments[key];
+            render();
+        });
+    });
+</script>
+</body>
+</html>
