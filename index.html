@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Call of Duty Random Class Generator</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="style_home.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Staatliches&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <!-- DATA FILES -->
+    <script src="data/Weapons_BO6.js"></script>
+    <script src="data/Weapons_BO7.js"></script>
+    <script src="data/Weapons_MWII.js"></script>
+    <script src="data/Weapons_MWIII.js"></script>
+    <script src="data/Attachments_BO6.js"></script>
+    <script src="data/Attachments_BO7.js"></script>
+    <script src="data/Attachments_MWII.js"></script>
+    <script src="data/Attachments_MWIII.js"></script>
+    <script src="data/LoadoutConfig.js"></script>
+    <script src="data/Translations_BO6.js"></script>
+    <script src="data/Translations_BO7.js"></script>
+    <script src="data/Translations_MWII.js"></script>
+    <script src="data/Translations_MWIII.js"></script>
+    <script src="data/ExtraWeapons.js"></script>
+    <script src="data/ExtraWeaponsTranslations.js"></script>
+    <script src="data/Translations.js"></script>
+    <script src="script.js"></script>
+
+    <style>
+        /* ---- ОБЩИЕ СТИЛИ ---- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #050606;
+            font-family: 'Russo One', sans-serif;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        #hqMenu {
+            display: flex;
+            position: relative;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            background: #050606;
+        }
+
+        /* ---- ВИДЕО + ОТРАЖЕНИЕ ---- */
+        .hq-video-section {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+        #hqVideo {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            pointer-events: none;
+            background: #050606;
+        }
+        .hq-hero {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2;
+            text-align: center;
+            pointer-events: none;
+            width: 90%;
+            max-width: 900px;
+        }
+        .hq-hero h1 {
+            font-family: 'Staatliches', cursive;
+            font-size: clamp(3rem, 10vw, 6rem);
+            letter-spacing: 6px;
+            color: #fff;
+            text-shadow: 0 0 30px rgba(255, 206, 7, 0.3);
+            margin-bottom: 0.2em;
+        }
+        .hq-hero h1 span {
+            color: #FFCE07;
+        }
+        .hq-hero p {
+            font-family: 'Russo One', sans-serif;
+            font-size: clamp(1rem, 2.5vw, 1.8rem);
+            letter-spacing: 4px;
+            color: rgba(255, 255, 255, 0.9);
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+        }
+
+        /* ---- БЛОК ОТРАЖЕНИЯ (зеркало) – УВЕЛИЧЕН ---- */
+        .hq-reflection {
+            position: relative;
+            width: 100%;
+            height: 70vh;
+            flex-shrink: 0;
+            overflow: hidden;
+            background: #050606;
+        }
+        #reflectionCanvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        .hq-reflection-fade {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 60%, rgba(0, 0, 0, 1) 100%);
+            z-index: 1;
+        }
+
+        /* ===== СТЕКЛЯННЫЙ ЭФФЕКТ (liquid glass) ===== */
+        .glass-effect {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.10) 0%, rgba(255, 255, 255, 0.02) 100%);
+            backdrop-filter: blur(24px) saturate(1.4);
+            -webkit-backdrop-filter: blur(24px) saturate(1.4);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            box-shadow:
+                0 8px 40px rgba(0, 0, 0, 0.6),
+                inset 0 0 80px rgba(255, 255, 255, 0.04),
+                inset 0 1px 0 rgba(255, 255, 255, 0.15);
+            border-radius: 40px;
+            transition: all 0.3s ease;
+        }
+
+        .hq-reflection-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 3;
+            text-align: center;
+            color: #fff;
+            pointer-events: none;
+            font-family: 'Russo One', sans-serif;
+            max-width: 85%;
+            line-height: 1.6;
+            padding: 35px 55px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.10) 0%, rgba(255, 255, 255, 0.02) 100%);
+            backdrop-filter: blur(24px) saturate(1.4);
+            -webkit-backdrop-filter: blur(24px) saturate(1.4);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            box-shadow:
+                0 8px 40px rgba(0, 0, 0, 0.6),
+                inset 0 0 80px rgba(255, 255, 255, 0.04),
+                inset 0 1px 0 rgba(255, 255, 255, 0.15);
+            border-radius: 40px;
+        }
+        .hq-reflection-text p {
+            font-size: clamp(1.8rem, 4vw, 3.2rem);
+            letter-spacing: 2px;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 30px rgba(0, 0, 0, 0.9);
+            color: #FFCE07;
+        }
+        .hq-reflection-text .desc-text {
+            font-size: clamp(0.95rem, 1.4vw, 1.3rem);
+            color: #eee;
+            display: block;
+            letter-spacing: 0.5px;
+            text-shadow: 0 2px 12px rgba(0, 0, 0, 0.7);
+        }
+        .hq-reflection-text strong {
+            color: #FFCE07;
+            font-weight: bold;
+        }
+
+        /* ---- КНОПКА ЯЗЫКА В HQ ---- */
+        .hq-lang-btn {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            z-index: 10;
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #fff;
+            padding: 8px 18px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-family: 'Russo One', sans-serif;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+        .hq-lang-btn:hover {
+            background: rgba(255, 206, 7, 0.25);
+            border-color: #FFCE07;
+            transform: scale(1.03);
+        }
+
+        /* ---- СЕТКА КАРТОЧЕК ---- */
+        .hq-game-grid {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            max-width: 1800px;
+            margin: 30px auto 20px;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 30px 35px;
+            box-sizing: border-box;
+        }
+        .hq-game-card {
+            position: relative;
+            aspect-ratio: 2.45 / 1;
+            overflow: hidden;
+            border-radius: 10px;
+            background: #111;
+            cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+        }
+        .hq-game-card img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease, filter 0.5s ease;
+        }
+        .hq-card-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, rgba(0, 0, 0, 0.72), rgba(0, 0, 0, 0.20) 55%, rgba(0, 0, 0, 0.50));
+            transition: background 0.3s ease;
+        }
+        .hq-game-card.active:hover {
+            transform: scale(1.025);
+            border-color: rgba(255, 206, 7, 0.45);
+            box-shadow: 0 15px 45px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 206, 7, 0.1);
+        }
+        .hq-game-card.active:hover img {
+            transform: scale(1.06);
+            filter: brightness(1.12) contrast(1.08);
+        }
+        .hq-game-card.active:hover .hq-card-overlay {
+            background: linear-gradient(90deg, rgba(0, 0, 0, 0.50), rgba(0, 0, 0, 0.05) 65%, rgba(0, 0, 0, 0.30));
+        }
+        .hq-game-info {
+            position: absolute;
+            left: 8%;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 3;
+            text-align: center;
+        }
+        .hq-cod {
+            font-family: 'Staatliches', sans-serif;
+            font-size: clamp(16px, 1.2vw, 27px);
+            font-weight: bold;
+            color: #eee;
+            text-shadow: 2px 3px 5px rgba(0, 0, 0, 0.9);
+        }
+        .hq-game-name {
+            margin-top: -5px;
+            font-family: 'Russo One', sans-serif;
+            font-size: clamp(25px, 2.2vw, 48px);
+            line-height: 0.9;
+            color: #eee;
+            text-shadow: 3px 4px 5px rgba(0, 0, 0, 0.95);
+            white-space: nowrap;
+        }
+        .hq-play {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(0, 0, 0, 0.45));
+            border-top: 1px solid rgba(255, 255, 255, 0.12);
+            opacity: 0;
+            transition: opacity 0.25s ease;
+            z-index: 4;
+        }
+        .hq-play span {
+            font-family: 'Russo One', sans-serif;
+            font-size: 13px;
+            letter-spacing: 2px;
+            color: #fff;
+        }
+        .hq-game-card.active:hover .hq-play {
+            opacity: 1;
+        }
+        .hq-game-card.coming-soon {
+            cursor: default;
+            filter: grayscale(0.35);
+        }
+        .hq-game-card.coming-soon img {
+            filter: grayscale(0.5) brightness(0.65);
+        }
+        .hq-game-card.coming-soon:hover img {
+            transform: none;
+        }
+        .coming-label {
+            position: absolute;
+            right: 18px;
+            bottom: 15px;
+            z-index: 5;
+            padding: 6px 12px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #ddd;
+            font-family: 'Russo One', sans-serif;
+            font-size: 11px;
+            letter-spacing: 1.5px;
+        }
+
+        /* ---- ВИДЕО-ЭЛЕМЕНТ ВНУТРИ КАРТОЧКИ ---- */
+        .hq-game-card .card-video {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 10;
+            display: none;
+            border-radius: 10px;
+            background: #000;
+        }
+        .hq-game-card .card-video.active {
+            display: block;
+        }
+
+        /* ---- ПОДВАЛ – стеклянный, ОПУЩЕН (увеличен отступ) ---- */
+        .hq-footer {
+            background: rgba(26, 26, 26, 0.65);
+            backdrop-filter: blur(20px) saturate(1.3);
+            -webkit-backdrop-filter: blur(20px) saturate(1.3);
+            border-top: 1px solid rgba(255, 206, 7, 0.3);
+            border-radius: 30px 30px 0 0;
+            padding: 30px 40px;
+            min-height: 80px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+            margin-top: auto;
+            margin-top: 10px;
+            box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            margin-left: 20px;
+            margin-right: 20px;
+            margin-bottom: 10px;
+        }
+        .hq-footer .footer-left nav ul {
+            list-style: none;
+            display: flex;
+            gap: 30px;
+        }
+        .hq-footer .footer-left nav ul li a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 1rem;
+            transition: color 0.3s;
+        }
+        .hq-footer .footer-left nav ul li a:hover {
+            color: #FFCE07;
+        }
+        .hq-footer .footer-right p {
+            font-size: 0.9rem;
+            color: #ccc;
+        }
+
+        /* ---- ГЕНЕРАТОР ---- */
+        #generatorContainer {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        #generatorContainer.visible {
+            display: block;
+            opacity: 1;
+        }
+        .back-to-hq {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #aaa;
+            padding: 8px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'Russo One', sans-serif;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+        .back-to-hq:hover {
+            border-color: #FFCE07;
+            color: #fff;
+            background: rgba(255, 206, 7, 0.1);
+        }
+
+        /* Адаптивность */
+        @media (max-width: 1100px) {
+            .hq-game-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 25px;
+                padding: 0 20px;
+            }
+        }
+        @media (max-width: 650px) {
+            .hq-game-grid {
+                grid-template-columns: 1fr;
+                gap: 18px;
+                padding: 0 15px;
+                margin-top: 20px;
+            }
+            .hq-game-card {
+                aspect-ratio: 2/1;
+            }
+            .hq-footer {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+                margin-left: 10px;
+                margin-right: 10px;
+                border-radius: 20px 20px 0 0;
+                padding: 25px 20px;
+                min-height: 70px;
+            }
+            .hq-footer .footer-left nav ul {
+                justify-content: center;
+            }
+            .hq-reflection {
+                height: 50vh;
+            }
+            .hq-reflection-text {
+                padding: 20px 25px;
+                border-radius: 28px;
+            }
+            .hq-lang-btn {
+                top: 10px;
+                right: 15px;
+                padding: 6px 12px;
+                font-size: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ============================================================
+    HQ МЕНЮ
+    ============================================================ -->
+    <section id="hqMenu">
+
+        <!-- ВИДЕО -->
+        <div class="hq-video-section">
+            <video id="hqVideo" autoplay muted loop playsinline>
+                <source src="Images/IntroSite.mp4" type="video/mp4">
+            </video>
+
+            <canvas id="pixelOverlay"
+            style="position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;">
+        </canvas>
+
+        <div class="hq-video-overlay" style="z-index: 2;"></div>
+
+        <!-- Заголовок -->
+        <div class="hq-hero" style="z-index: 3;">
+            <h1><span id="hqTitleSpan">RANDOMIZER</span> <span id="hqTitleGenerator">GENERATOR</span></h1>
+        </div>
+
+        <!-- КНОПКА ЯЗЫКА -->
+        <button id="hqLangToggle" class="hq-lang-btn" style="z-index: 10;">
+            <i class="fas fa-globe"></i> <span id="hqLangLabel">RU</span>
+        </button>
+    </div>
+
+    <!-- ОТРАЖЕНИЕ -->
+    <div class="hq-reflection">
+        <canvas id="reflectionCanvas"></canvas>
+        <div class="hq-reflection-fade"></div>
+        <div class="hq-reflection-text">
+            <p id="hqGlassTitle">НОВЫЙ СПОСОБ ИГРАТЬ В НОВЫЕ И СТАРЫЕ COD</p>
+            <span class="desc-text" id="hqGlassDesc">
+                Добро пожаловать в <strong>ультимативный генератор случайных классов</strong> для серии Call of Duty.<br><br>
+                Забудь про скучный подбор метового оружия и часами выверенные билды. Здесь ты полагаешься только на удачу и свою реакцию.
+                Нажимаешь кнопку — и система выдаёт тебе <strong>абсолютно безумный набор.</strong>
+                Каждый заход — это уникальный вызов, который проверит твою адаптивность на поле боя.
+            </span>
+        </div>
+    </div>
+
+    <!-- СЕТКА КАРТОЧЕК -->
+    <div class="hq-game-grid" id="gameGrid">
+        <!-- MW4 -->
+        <div class="hq-game-card coming-soon">
+            <img src="Images/MW4ShootUpd.png" alt="MW4" />
+            <div class="hq-card-overlay"></div>
+            <div class="coming-label">СКОРО</div>
+        </div>
+        <!-- BO7 -->
+        <div class="hq-game-card active" data-game="bo7">
+            <img src="Images/BO7ShootUpd.png" alt="BO7" />
+            <div class="hq-card-overlay"></div>
+            <div class="hq-play"><span>ИГРАТЬ</span></div>
+        </div>
+        <!-- BO6 -->
+        <div class="hq-game-card active" data-game="bo6">
+            <img src="Images/BO6ShootUpd.png" alt="BO6" />
+            <div class="hq-card-overlay"></div>
+            <div class="hq-play"><span>ИГРАТЬ</span></div>
+        </div>
+        <!-- Warzone -->
+        <div class="hq-game-card active" data-game="warzone">
+            <img src="Images/wz.png" alt="Warzone" />
+            <div class="hq-card-overlay"></div>
+            <div class="hq-play"><span>ИГРАТЬ</span></div>
+        </div>
+        <!-- MWIII -->
+        <div class="hq-game-card active" data-game="mwiii">
+            <img src="Images/MWIIIShootUpd.png" alt="MWIII" />
+            <div class="hq-card-overlay"></div>
+            <div class="hq-play"><span>ИГРАТЬ</span></div>
+        </div>
+        <!-- MWII -->
+        <div class="hq-game-card active" data-game="mwii">
+            <img src="Images/MWIIShootUpd.png" alt="MWII" />
+            <div class="hq-card-overlay"></div>
+            <div class="hq-play"><span>ИГРАТЬ</span></div>
+        </div>
+        <!-- остальные карточки (coming-soon) без изменений -->
+        <!-- Vanguard -->
+        <div class="hq-game-card coming-soon">
+            <img src="Images/VanguardShootUpd.png" alt="Vanguard" />
+            <div class="hq-card-overlay"></div>
+            <div class="coming-label">СКОРО</div>
+        </div>
+        <!-- Cold War -->
+        <div class="hq-game-card coming-soon">
+            <img src="Images/ColdWarShootUpd.png" alt="Cold War" />
+            <div class="hq-card-overlay"></div>
+            <div class="coming-label">СКОРО</div>
+        </div>
+        <!-- MW2019 -->
+        <div class="hq-game-card coming-soon">
+            <img src="Images/MW2019ShootUpd.png" alt="MW2019" />
+            <div class="hq-card-overlay"></div>
+            <div class="coming-label">СКОРО</div>
+        </div>
+        <!-- BO4 -->
+        <div class="hq-game-card coming-soon">
+            <img src="Images/BO4ShootUpd.png" alt="BO4" />
+            <div class="hq-card-overlay"></div>
+            <div class="coming-label">СКОРО</div>
+        </div>
+        <!-- WWII -->
+        <div class="hq-game-card coming-soon">
+            <img src="Images/WWIIShootUpd.png" alt="WWII" />
+            <div class="hq-card-overlay"></div>
+            <div class="coming-label">СКОРО</div>
+        </div>
+        <!-- MWR -->
+        <div class="hq-game-card coming-soon">
+            <img src="Images/MWRShootUpd.png" alt="MWR" />
+            <div class="hq-card-overlay"></div>
+            <div class="coming-label">СКОРО</div>
+        </div>
+        <!-- IW -->
+        <div class="hq-game-card coming-soon">
+            <img src="Images/IWShootUpd.png" alt="IW" />
+            <div class="hq-card-overlay"></div>
+            <div class="coming-label">СКОРО</div>
+        </div>
+        <!-- BO3 -->
+        <div class="hq-game-card coming-soon">
+            <img src="Images/BO3ShootUpd.png" alt="BO3" />
+            <div class="hq-card-overlay"></div>
+            <div class="coming-label">СКОРО</div>
+        </div>
+        <!-- AW -->
+        <div class="hq-game-card coming-soon">
+            <img src="Images/AWShootUpd.png" alt="AW" />
+            <div class="hq-card-overlay"></div>
+            <div class="coming-label">СКОРО</div>
+        </div>
+        <!-- GHOSTS -->
+        <div class="hq-game-card coming-soon">
+            <img src="Images/GhostsShootUpd.png" alt="GHOSTS" />
+            <div class="hq-card-overlay"></div>
+            <div class="coming-label">СКОРО</div>
+        </div>
+        <!-- BO2 -->
+        <div class="hq-game-card coming-soon">
+            <img src="Images/BO2ShootUpd.png" alt="BO2" />
+            <div class="hq-card-overlay"></div>
+            <div class="coming-label">СКОРО</div>
+        </div>
+        <!-- MW3 -->
+        <div class="hq-game-card coming-soon">
+            <img src="Images/MW3ShootUpd.png" alt="MW3" />
+            <div class="hq-card-overlay"></div>
+            <div class="coming-label">СКОРО</div>
+        </div>
+        <!-- BO -->
+        <div class="hq-game-card coming-soon">
+            <img src="Images/BOShootUpd.png" alt="BO" />
+            <div class="hq-card-overlay"></div>
+            <div class="coming-label">СКОРО</div>
+        </div>
+        <!-- MW2 -->
+        <div class="hq-game-card coming-soon">
+            <img src="Images/MW2ShootUpd.png" alt="MW2" />
+            <div class="hq-card-overlay"></div>
+            <div class="coming-label">СКОРО</div>
+        </div>
+        <!-- WAW -->
+        <div class="hq-game-card coming-soon">
+            <img src="Images/WAWShootUpd.png" alt="WAW" />
+            <div class="hq-card-overlay"></div>
+            <div class="coming-label">СКОРО</div>
+        </div>
+        <!-- COD4 -->
+        <div class="hq-game-card coming-soon">
+            <img src="Images/COD4ShootUpd.png" alt="COD4" />
+            <div class="hq-card-overlay"></div>
+            <div class="coming-label">СКОРО</div>
+        </div>
+    </div>
+
+    <!-- ПОДВАЛ (стеклянный, опущен) -->
+    <footer class="hq-footer">
+        <div class="footer-left">
+            <nav><ul><li><a href="https://www.youtube.com/@blackhatidk" target="_blank"><i class="fa-brands fa-youtube"></i> <span id="hqFooterMade">Made by BlackHat</span></a></li></ul></nav>
+        </div>
+        <div class="footer-right"><p id="hqFooterCopy">© 2026 Call of Duty Random Class Generator</p></div>
+    </footer>
+</section>
+
+<!-- ============================================================
+ГЕНЕРАТОР (появляется после выбора игры)
+============================================================ -->
+<div id="generatorContainer">
+    <header>
+        <div class="header-content">
+            <div class="logo" style="display:flex;align-items:center;">
+                <a href="#" id="backToHqBtn" class="back-to-hq"><i class="fas fa-arrow-left"></i> <span id="backLabel">Назад</span></a>
+                <a href="./" style="margin-left:15px;"><img src="Images/logo.png" alt="Logo" /></a>
+            </div>
+            <div class="header-title"><h1>Call of Duty<br />Random Class Generator</h1></div>
+            <nav>
+                <ul>
+                    <li><a href="#" id="backToHqNav"><i class="fas fa-home"></i> <span id="homeLabel">Главная</span></a></li>
+                    <li><button id="langToggle" class="lang-btn"><i class="fas fa-globe"></i> RU</button></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    <main>
+        <section>
+            <h2 class="section-title" id="mainTitle">НОВЫЙ <span style="color:#FFCE07">И</span> ОБНОВЛЁННЫЙ!</h2>
+            <p id="desc1">Добро пожаловать в новый генератор случайных классов для Call of Duty: Modern Warfare II, III, Black Ops 6 и 7!</p>
+            <p id="desc2">Все дополнительные функции доступны по нажатию на иконку настроек (<i class="fas fa-cog"></i>)!</p>
+            <br /><p id="desc3">Готов ли ты к испытанию со случайным набором экипировки?</p>
+        </section>
+        <div class="button-container">
+            <select id="gameSelect" class="btn" style="background:#333;color:#fff;border:2px solid #FFCE07;padding:15px 30px;font-family:'Russo One',sans-serif;font-size:1.1rem;border-radius:8px;cursor:pointer;">
+                <option value="bo7">Black Ops 7</option>
+                <option value="bo6" selected>Black Ops 6</option>
+                <option value="mwiii">Modern Warfare III</option>
+                <option value="mwii">Modern Warfare II</option>
+                <option value="warzone">Warzone</option>
+            </select>
+            <button id="generateBtn" class="btn" data-en="Generate Random Class" data-ru="Сгенерировать класс">Сгенерировать класс</button>
+            <button id="replaceBtn" class="btn btn-secondary" data-en="Replace Attachments" data-ru="Заменить модули"><i class="fas fa-exchange-alt"></i> <span id="replaceBtnText">Заменить модули</span></button>
+            <button id="settingsBtn" class="btn" aria-label="Settings" title="Settings"><i class="fas fa-cog"></i></button>
+        </div>
+        <div id="advancedSettings" class="hidden">
+            <h2 id="settingsTitle">Расширенные настройки</h2>
+            <form id="settingsForm">
+                <div class="form-group">
+                    <label for="attachmentsCount" id="labelAttachmentsCount">Количество модулей:</label>
+                    <select id="attachmentsCount" name="attachmentsCount" style="padding:8px 12px;border-radius:5px;border:1px solid #555;background:#1a1a1a;color:#fff;font-size:1rem;">
+                        <option value="random">Случайно (1-5)</option>
+                        <option value="5" selected>5</option>
+                    </select>
+                </div>
+                <div id="carryForwardContainer">
+                    <div class="form-group" style="margin-top:10px;padding:10px;background:#2a2a2a;border-radius:6px;border-left:3px solid #FFCE07;">
+                        <input type="checkbox" id="includeMWIIWeapons" name="includeMWIIWeapons" />
+                        <label for="includeMWIIWeapons" style="color:#ddd;font-weight:bold;cursor:pointer;">🔫 Включить оружие из MWII (Carry Forward)</label>
+                        <span style="color:#888;font-size:0.8rem;display:block;margin-top:3px;margin-left:25px;">Добавляет оружие из Modern Warfare II в пул MWIII</span>
+                    </div>
+                </div>
+                <div id="warzoneModeContainer" style="display:none;margin-top:15px;padding-top:15px;border-top:1px solid #444;">
+                    <label style="color:#ddd;display:block;margin-bottom:8px;font-weight:bold;" id="warzoneModeLabel">Режим оружия в Warzone:</label>
+                    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                        <button id="warzoneModeClassic" class="warzone-mode-btn" data-mode="classic" style="background:#333;color:#fff;border:2px solid #555;padding:6px 16px;border-radius:6px;cursor:pointer;font-family:'Russo One',sans-serif;font-size:0.85rem;transition:all 0.3s;">Classic (BO6/MWII/MWIII)</button>
+                        <button id="warzoneModeBO7" class="warzone-mode-btn" data-mode="bo7" style="background:#333;color:#fff;border:2px solid #555;padding:6px 16px;border-radius:6px;cursor:pointer;font-family:'Russo One',sans-serif;font-size:0.85rem;transition:all 0.3s;">Only BO7</button>
+                        <button id="warzoneModeAll" class="warzone-mode-btn" data-mode="all" style="background:#333;color:#fff;border:2px solid #FFCE07;padding:6px 16px;border-radius:6px;cursor:pointer;font-family:'Russo One',sans-serif;font-size:0.85rem;transition:all 0.3s;">All (BO7 + остальные)</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <input type="checkbox" id="excludeWeaponCategories" name="excludeWeaponCategories" />
+                    <label for="excludeWeaponCategories" id="labelExcludeWeaponCategories">Исключить категории оружия</label>
+                </div>
+                <div id="excludeWeaponCategoriesField" class="nested-form-group hidden">
+                    <div class="form-group" style="flex-wrap:wrap;gap:8px;">
+                        <label style="width:100%;margin-bottom:5px;color:#aaa;font-size:0.9rem;">Выберите категории для исключения:</label>
+                        <div id="weaponCategoryCheckboxes" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+                    </div>
+                </div>
+                <div id="conversionsGroup" class="form-group" style="margin-top:15px;padding-top:15px;border-top:1px solid #444;">
+                    <label style="color:#ddd;display:block;margin-bottom:8px;font-weight:bold;">⚡ Настройки конверсий:</label>
+                    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+                        <button id="toggleConversionsBtn" type="button" style="background:#333;color:#fff;border:1px solid #555;padding:6px 16px;border-radius:6px;cursor:pointer;font-family:'Russo One',sans-serif;font-size:0.85rem;transition:all 0.3s;">⚡ Включить конверсии</button>
+                        <button id="onlyConversionsBtn" type="button" style="background:#333;color:#fff;border:1px solid #FFCE07;padding:6px 16px;border-radius:6px;cursor:pointer;font-family:'Russo One',sans-serif;font-size:0.85rem;transition:all 0.3s;">🔥 Только конверсии</button>
+                    </div>
+                </div>
+                <div id="prestigeContainer">
+                    <div id="prestigeGroup" class="form-group" style="margin-top:15px;padding-top:15px;border-top:1px solid #444;">
+                        <label style="color:#ddd;display:block;margin-bottom:8px;font-weight:bold;">⭐ Престижные модули:</label>
+                        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+                            <button id="togglePrestigeBtn" type="button" style="background:#333;color:#fff;border:1px solid #555;padding:6px 16px;border-radius:6px;cursor:pointer;font-family:'Russo One',sans-serif;font-size:0.85rem;transition:all 0.3s;">⭐ Включить престижные модули</button>
+                            <button id="onlyPrestigeBtn" type="button" style="background:#333;color:#fff;border:1px solid #FFCE07;padding:6px 16px;border-radius:6px;cursor:pointer;font-family:'Russo One',sans-serif;font-size:0.85rem;transition:all 0.3s;">🔥 Только престижные модули</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div id="classDisplay"></div>
+    </main>
+    <footer>
+        <div class="footer-left"><nav><ul><li><a href="https://www.youtube.com/@blackhatidk" target="_blank"><i class="fa-brands fa-youtube"></i> Made by BlackHat</a></li></ul></nav></div>
+        <div class="footer-right"><p>© 2026 Call of Duty Random Class Generator</p></div>
+    </footer>
+</div>
+
+<!-- ============================================================
+СКРИПТЫ
+============================================================ -->
+<script>
+    // ============================================================
+    // 1. ПИКСЕЛЬНОЕ ОТРАЖЕНИЕ (без изменений)
+    // ============================================================
+    (function() {
+        const video = document.getElementById('hqVideo');
+        const reflectionCanvas = document.getElementById('reflectionCanvas');
+        const overlayCanvas = document.getElementById('pixelOverlay');
+
+        const ctxReflection = reflectionCanvas.getContext('2d');
+        const ctxOverlay = overlayCanvas.getContext('2d');
+
+        const containerReflection = reflectionCanvas.parentElement;
+        const containerOverlay = overlayCanvas.parentElement;
+
+        let width, height;
+        const pixelSize = 15;
+        const pixelHeightRatio = 0.15;
+
+        let tempCanvas, tempCtx;
+
+        function resize() {
+            const rectRef = containerReflection.getBoundingClientRect();
+            reflectionCanvas.width = rectRef.width;
+            reflectionCanvas.height = rectRef.height;
+
+            const rectOver = containerOverlay.getBoundingClientRect();
+            overlayCanvas.width = rectOver.width;
+            overlayCanvas.height = rectOver.height;
+
+            const cols = Math.ceil(rectRef.width / pixelSize);
+            const rows = Math.ceil(rectRef.height / pixelSize);
+            tempCanvas = document.createElement('canvas');
+            tempCanvas.width = cols;
+            tempCanvas.height = rows;
+            tempCtx = tempCanvas.getContext('2d');
+        }
+
+        function drawPixelReflection() {
+            if (!video.readyState || video.readyState < 2) {
+                requestAnimationFrame(drawPixelReflection);
+                return;
+            }
+
+            const vw = video.videoWidth;
+            const vh = video.videoHeight;
+
+            const cropY = vh * (1 - pixelHeightRatio);
+            const cropH = vh * pixelHeightRatio;
+
+            tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
+            tempCtx.drawImage(video, 0, cropY, vw, cropH, 0, 0, tempCanvas.width, tempCanvas.height);
+
+            const overlayW = overlayCanvas.width;
+            const overlayH = overlayCanvas.height;
+
+            ctxOverlay.clearRect(0, 0, overlayW, overlayH);
+            ctxOverlay.imageSmoothingEnabled = false;
+
+            const zoneTop = overlayH * (1 - pixelHeightRatio);
+            const zoneHeight = overlayH * pixelHeightRatio;
+
+            ctxOverlay.drawImage(tempCanvas, 0, zoneTop, overlayW, zoneHeight);
+
+            const maskCanvas = document.createElement('canvas');
+            maskCanvas.width = overlayW;
+            maskCanvas.height = overlayH;
+            const maskCtx = maskCanvas.getContext('2d');
+            const gradient = maskCtx.createLinearGradient(0, zoneTop, 0, overlayH);
+            gradient.addColorStop(0, 'rgba(0,0,0,0)');
+            gradient.addColorStop(1, 'rgba(0,0,0,1)');
+            maskCtx.fillStyle = gradient;
+            maskCtx.fillRect(0, 0, overlayW, overlayH);
+
+            ctxOverlay.globalCompositeOperation = 'destination-in';
+            ctxOverlay.drawImage(maskCanvas, 0, 0);
+            ctxOverlay.globalCompositeOperation = 'source-over';
+
+            const refW = reflectionCanvas.width;
+            const refH = reflectionCanvas.height;
+
+            ctxReflection.clearRect(0, 0, refW, refH);
+            ctxReflection.imageSmoothingEnabled = false;
+
+            ctxReflection.save();
+            ctxReflection.scale(1, -1);
+            ctxReflection.drawImage(tempCanvas, 0, -refH, refW, refH);
+            ctxReflection.restore();
+
+            const maskCanvasRef = document.createElement('canvas');
+            maskCanvasRef.width = refW;
+            maskCanvasRef.height = refH;
+            const maskCtxRef = maskCanvasRef.getContext('2d');
+            const gradientRef = maskCtxRef.createLinearGradient(0, 0, 0, refH);
+            gradientRef.addColorStop(0, 'rgba(0,0,0,1)');
+            gradientRef.addColorStop(1, 'rgba(0,0,0,0)');
+            maskCtxRef.fillStyle = gradientRef;
+            maskCtxRef.fillRect(0, 0, refW, refH);
+
+            ctxReflection.globalCompositeOperation = 'destination-in';
+            ctxReflection.drawImage(maskCanvasRef, 0, 0);
+            ctxReflection.globalCompositeOperation = 'source-over';
+
+            requestAnimationFrame(drawPixelReflection);
+        }
+
+        window.addEventListener('resize', resize);
+        resize();
+
+        video.addEventListener('loadeddata', () => {
+            drawPixelReflection();
+        });
+        if (video.readyState >= 2) {
+            drawPixelReflection();
+        } else {
+            drawPixelReflection();
+        }
+
+        console.log('✅ Пикселизация с плавным переходом (нижняя часть, отражение симметрично)');
+    })();
+
+
+    // ============================================================
+    // 2. ПЕРЕКЛЮЧЕНИЕ HQ / ГЕНЕРАТОР (С ВИДЕО ВНУТРИ КАРТОЧКИ) + сброс при возврате
+    // ============================================================
+    (function() {
+        const hqMenu = document.getElementById('hqMenu');
+        const generatorContainer = document.getElementById('generatorContainer');
+
+        // Карта видео для каждой игры
+        const introVideos = {
+            bo7: 'Images/BO7Card.mp4',
+            bo6: 'Images/BO6Card.mp4',
+            warzone: 'Images/MWIICard.mp4',
+            mwiii: 'Images/MWIIICard.mp4',
+            mwii: 'Images/MWIICard.mp4'
+        };
+
+        // Глобальный флаг
+        let isIntroPlaying = false;
+
+        // Функция показа генератора (без видео)
+        function showGeneratorDirectly(game) {
+            if (typeof switchGame === 'function') {
+                switchGame(game);
+                const sel = document.getElementById('gameSelect');
+                if (sel) sel.value = game;
+            }
+            hqMenu.style.display = 'none';
+            generatorContainer.style.display = 'block';
+            generatorContainer.classList.add('visible');
+            if (typeof generateClassWithSettings === 'function') {
+                setTimeout(generateClassWithSettings, 100);
+            }
+        }
+
+        // Функция сброса интро (остановить видео, восстановить карточку, снять блокировку)
+        function resetIntroVideo() {
+            document.querySelectorAll('.hq-game-card .card-video.active').forEach(videoEl => {
+                const card = videoEl.closest('.hq-game-card');
+                if (card) {
+                    videoEl.pause();
+                    videoEl.src = '';
+                    videoEl.style.display = 'none';
+                    videoEl.classList.remove('active');
+                    // Показываем img, overlay, play
+                    const img = card.querySelector('img');
+                    const overlay = card.querySelector('.hq-card-overlay');
+                    const playLabel = card.querySelector('.hq-play');
+                    if (img) img.style.display = 'block';
+                    if (overlay) overlay.style.display = 'block';
+                    if (playLabel) playLabel.style.display = 'flex';
+                }
+            });
+            isIntroPlaying = false;
+            const gameSelect = document.getElementById('gameSelect');
+            if (gameSelect) gameSelect.disabled = false;
+        }
+
+        // Функция завершения интро и перехода (вызывается по окончании видео)
+        function finishIntro(card, game) {
+            const videoEl = card.querySelector('.card-video');
+            if (videoEl) {
+                videoEl.pause();
+                videoEl.src = '';
+                videoEl.style.display = 'none';
+                videoEl.classList.remove('active');
+            }
+            // Показываем изображение и overlay обратно
+            const img = card.querySelector('img');
+            const overlay = card.querySelector('.hq-card-overlay');
+            const playLabel = card.querySelector('.hq-play');
+            if (img) img.style.display = 'block';
+            if (overlay) overlay.style.display = 'block';
+            if (playLabel) playLabel.style.display = 'flex';
+
+            isIntroPlaying = false;
+            const gameSelect = document.getElementById('gameSelect');
+            if (gameSelect) gameSelect.disabled = false;
+
+            // Переходим к генератору
+            showGeneratorDirectly(game);
+        }
+
+        // Функция запуска видео внутри карточки (с таймером безопасности)
+        function playIntroOnCard(card, game) {
+            if (isIntroPlaying) return;
+            isIntroPlaying = true;
+            const gameSelect = document.getElementById('gameSelect');
+            if (gameSelect) gameSelect.disabled = true;
+            const videoSrc = introVideos[game];
+            if (!videoSrc) {
+                showGeneratorDirectly(game);
+                return;
+            }
+
+            let videoEl = card.querySelector('.card-video');
+            if (!videoEl) {
+                videoEl = document.createElement('video');
+                videoEl.className = 'card-video';
+                videoEl.autoplay = true;
+                videoEl.muted = true;
+                videoEl.playsInline = true;
+                videoEl.style.display = 'none';
+                card.appendChild(videoEl);
+            }
+
+            videoEl.src = videoSrc;
+            videoEl.load();
+            videoEl.style.display = 'block';
+            videoEl.classList.add('active');
+
+            const img = card.querySelector('img');
+            const overlay = card.querySelector('.hq-card-overlay');
+            const playLabel = card.querySelector('.hq-play');
+            if (img) img.style.display = 'none';
+            if (overlay) overlay.style.display = 'none';
+            if (playLabel) playLabel.style.display = 'none';
+
+            let finished = false;
+            let timeoutId = null;
+
+            function finish() {
+                if (finished) return;
+                finished = true;
+                if (timeoutId) clearTimeout(timeoutId);
+                videoEl.removeEventListener('ended', onEnded);
+                videoEl.removeEventListener('error', onError);
+                finishIntro(card, game);
+            }
+
+            const onEnded = function() {
+                finish();
+            };
+            const onError = function() {
+                console.warn('Ошибка загрузки видео, переходим к генератору');
+                finish();
+            };
+
+            videoEl.addEventListener('ended', onEnded);
+            videoEl.addEventListener('error', onError);
+
+            // Таймер безопасности
+            videoEl.addEventListener('loadedmetadata', function() {
+                const duration = videoEl.duration;
+                if (duration && isFinite(duration)) {
+                    const delay = (duration * 1000) + 1000;
+                    timeoutId = setTimeout(function() {
+                        if (!finished) {
+                            console.warn('Таймаут: видео не закончилось, принудительный переход');
+                            finish();
+                        }
+                    }, delay);
+                } else {
+                    timeoutId = setTimeout(function() {
+                        if (!finished) {
+                            console.warn('Таймаут (10с): видео не закончилось, принудительный переход');
+                            finish();
+                        }
+                    }, 10000);
+                }
+            });
+
+            // Если видео уже загружено (loadedmetadata может не сработать)
+            if (videoEl.readyState >= 1) {
+                const duration = videoEl.duration;
+                if (duration && isFinite(duration)) {
+                    const delay = (duration * 1000) + 1000;
+                    timeoutId = setTimeout(function() {
+                        if (!finished) {
+                            console.warn('Таймаут (готово): видео не закончилось, принудительный переход');
+                            finish();
+                        }
+                    }, delay);
+                } else {
+                    timeoutId = setTimeout(function() {
+                        if (!finished) {
+                            console.warn('Таймаут (готово, 10с): видео не закончилось, принудительный переход');
+                            finish();
+                        }
+                    }, 10000);
+                }
+            }
+
+            videoEl.play().catch(function(err) {
+                console.warn('Не удалось запустить видео:', err);
+                // Если не удалось запустить, переходим через 2 секунды
+                setTimeout(finish, 2000);
+            });
+        }
+
+        // --- Обработчики кликов на карточки ---
+        document.querySelectorAll('#hqMenu .hq-game-card.active').forEach(card => {
+            card.addEventListener('click', function(e) {
+                const game = this.dataset.game;
+                if (!game) return;
+                if (this.querySelector('.card-video.active')) return;
+                playIntroOnCard(this, game);
+            });
+        });
+
+        // --- Кнопки "Назад" и "Главная" (сброс видео перед возвратом) ---
+        document.querySelectorAll('#backToHqBtn, #backToHqNav').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                resetIntroVideo(); // останавливаем видео, снимаем блокировку
+                generatorContainer.classList.remove('visible');
+                generatorContainer.style.display = 'none';
+                hqMenu.style.display = 'flex';
+            });
+        });
+
+        // --- Синхронизация с выпадающим списком (без видео, сразу переход) ---
+        const gameSelect = document.getElementById('gameSelect');
+        if (gameSelect) {
+            gameSelect.addEventListener('change', function() {
+                const game = this.value;
+                if (typeof switchGame === 'function') {
+                    switchGame(game);
+                    showGeneratorDirectly(game);
+                }
+            });
+        }
+
+        console.log('✅ Видео-интро внутри карточек добавлено (сброс при возврате)');
+    })();
+
+
+    // ============================================================
+    // 3. 🌍 ЕДИНАЯ СИСТЕМА ПЕРЕКЛЮЧЕНИЯ ЯЗЫКА (FIX)
+    // ============================================================
+    (function() {
+        let currentLang = 'ru';
+        const hqTexts = {
+            ru: {
+                titleSpan: 'RANDOMIZER',
+                titleGen: 'GENERATOR',
+                glassTitle: 'НОВЫЙ СПОСОБ ИГРАТЬ В НОВЫЕ И СТАРЫЕ COD\'s',
+                glassDesc: `Добро пожаловать в <strong>ультимативный генератор случайных классов</strong> для серии Call of Duty.<br><br>
+                    Забудь про скучный подбор метового оружия и часами выверенные билды. Здесь ты полагаешься только на удачу и свою реакцию.
+                    Нажимаешь кнопку — и система выдаёт тебе <strong>абсолютно безумный набор.</strong>
+                    Каждый заход — это уникальный вызов, который проверит твою адаптивность на поле боя.`,
+                footerMade: 'Made by BlackHat',
+                footerCopy: '© 2026 Call of Duty Random Class Generator',
+                langLabel: 'RU'
+            },
+            en: {
+                titleSpan: 'RANDOMIZER',
+                titleGen: 'GENERATOR',
+                glassTitle: 'A NEW WAY TO PLAY<br>NEW AND OLD COD\'s',
+                glassDesc: `Welcome to the <strong>ultimate random class generator</strong> for the Call of Duty series.<br><br>
+                    Forget boring meta-weapon selection and hours of fine-tuned builds. Here you rely only on luck and your reflexes.
+                    Press the button — and the system gives you an <strong>absolutely crazy setup.</strong>
+                    Every run is a unique challenge that will test your adaptability on the battlefield.`,
+                footerMade: 'Made by BlackHat',
+                footerCopy: '© 2026 Call of Duty Random Class Generator',
+                langLabel: 'ENG'
+            }
+        };
+        const genTexts = {
+            ru: {
+                mainTitle: 'НОВЫЙ <span style="color:#FFCE07">И</span> ОБНОВЛЁННЫЙ!',
+                desc1: 'Добро пожаловать в новый генератор случайных классов для Call of Duty: Modern Warfare II, III, Black Ops 6 и 7!',
+                desc2: 'Все дополнительные функции доступны по нажатию на иконку настроек (<i class="fas fa-cog"></i>)!',
+                desc3: 'Готов ли ты к испытанию со случайным набором экипировки?',
+                generateBtn: 'Сгенерировать класс',
+                replaceBtn: 'Заменить модули',
+                settingsTitle: 'Расширенные настройки',
+                labelAttachmentsCount: 'Количество модулей:',
+                labelExcludeWeaponCategories: 'Исключить категории оружия',
+                backLabel: 'Назад',
+                homeLabel: 'Главная',
+                langLabel: 'RU'
+            },
+            en: {
+                mainTitle: 'NEW <span style="color:#FFCE07">AND</span> REFRESHED!',
+                desc1: 'Welcome to the brand new random class generator for Call of Duty: Modern Warfare II, III, Black Ops 6 and 7!',
+                desc2: 'All extras are available with one press on the settings (<i class="fas fa-cog"></i>) icon!',
+                desc3: 'Are you up for the challenge with a completely random loadout?',
+                generateBtn: 'Generate Random Class',
+                replaceBtn: 'Replace Attachments',
+                settingsTitle: 'Advanced Settings',
+                labelAttachmentsCount: 'Attachments count:',
+                labelExcludeWeaponCategories: 'Exclude weapon categories',
+                backLabel: 'Back',
+                homeLabel: 'Home',
+                langLabel: 'ENG'
+            }
+        };
+
+        function updateHQLanguage(lang) {
+            const t = hqTexts[lang] || hqTexts.ru;
+            document.getElementById('hqTitleSpan').textContent = t.titleSpan;
+            document.getElementById('hqTitleGenerator').textContent = t.titleGen;
+            document.getElementById('hqGlassTitle').innerHTML = t.glassTitle;
+            document.getElementById('hqGlassDesc').innerHTML = t.glassDesc;
+            document.getElementById('hqFooterMade').textContent = t.footerMade;
+            document.getElementById('hqFooterCopy').textContent = t.footerCopy;
+            document.getElementById('hqLangLabel').textContent = t.langLabel;
+        }
+
+        function updateGeneratorLanguage(lang) {
+            const t = genTexts[lang] || genTexts.ru;
+            const mainTitle = document.getElementById('mainTitle');
+            if (mainTitle) mainTitle.innerHTML = t.mainTitle;
+            const d1 = document.getElementById('desc1');
+            if (d1) d1.textContent = t.desc1;
+            const d2 = document.getElementById('desc2');
+            if (d2) d2.innerHTML = t.desc2;
+            const d3 = document.getElementById('desc3');
+            if (d3) d3.textContent = t.desc3;
+            const genBtn = document.getElementById('generateBtn');
+            if (genBtn) genBtn.textContent = t.generateBtn;
+            const replaceSpan = document.getElementById('replaceBtnText');
+            if (replaceSpan) replaceSpan.textContent = t.replaceBtn;
+            const settingsTitle = document.getElementById('settingsTitle');
+            if (settingsTitle) settingsTitle.textContent = t.settingsTitle;
+            const labelAtt = document.getElementById('labelAttachmentsCount');
+            if (labelAtt) labelAtt.textContent = t.labelAttachmentsCount;
+            const labelExcl = document.getElementById('labelExcludeWeaponCategories');
+            if (labelExcl) labelExcl.textContent = t.labelExcludeWeaponCategories;
+            const backLabel = document.getElementById('backLabel');
+            if (backLabel) backLabel.textContent = t.backLabel;
+            const homeLabel = document.getElementById('homeLabel');
+            if (homeLabel) homeLabel.textContent = t.homeLabel;
+            const langBtnGen = document.getElementById('langToggle');
+            if (langBtnGen) {
+                langBtnGen.innerHTML = lang === 'en' ?
+                    '<i class="fas fa-globe"></i> ENG' :
+                    '<i class="fas fa-globe"></i> RU';
+            }
+            if (typeof window.updateGeneratorLanguage === 'function') {
+                window.updateGeneratorLanguage(lang);
+            }
+            if (typeof window.currentLang !== 'undefined') {
+                window.currentLang = lang;
+            }
+            if (typeof window.toggleLanguage === 'function' && window.toggleLanguage !== toggleLanguageWrapper) {
+                window.toggleLanguage();
+            }
+        }
+
+        let isToggling = false;
+
+        function toggleLanguageWrapper() {
+            if (isToggling) return;
+            isToggling = true;
+            try {
+                const newLang = currentLang === 'ru' ? 'en' : 'ru';
+                currentLang = newLang;
+                updateHQLanguage(newLang);
+                updateGeneratorLanguage(newLang);
+                try {
+                    localStorage.setItem('codLang', newLang);
+                } catch (_) { /* ignore */ }
+            } finally {
+                isToggling = false;
+            }
+        }
+
+        function setLanguage(lang) {
+            if (lang !== 'ru' && lang !== 'en') return;
+            if (isToggling) return;
+            isToggling = true;
+            try {
+                currentLang = lang;
+                updateHQLanguage(lang);
+                updateGeneratorLanguage(lang);
+                try {
+                    localStorage.setItem('codLang', lang);
+                } catch (_) { /* ignore */ }
+            } finally {
+                isToggling = false;
+            }
+        }
+
+        const hqLangBtn = document.getElementById('hqLangToggle');
+        if (hqLangBtn) {
+            hqLangBtn.addEventListener('click', toggleLanguageWrapper);
+        }
+        const genLangBtn = document.getElementById('langToggle');
+        if (genLangBtn) {
+            genLangBtn.addEventListener('click', toggleLanguageWrapper);
+        }
+
+        try {
+            const saved = localStorage.getItem('codLang');
+            if (saved === 'en' || saved === 'ru') {
+                currentLang = saved;
+            }
+        } catch (_) { /* ignore */ }
+
+        updateHQLanguage(currentLang);
+        updateGeneratorLanguage(currentLang);
+
+        window.currentLang = currentLang;
+        window.setLanguage = setLanguage;
+        window.toggleLanguage = toggleLanguageWrapper;
+        window.updateGeneratorLanguage = updateGeneratorLanguage;
+        window.updateHQLanguage = updateHQLanguage;
+
+        console.log('✅ Единая система перевода включена. Текущий язык:', currentLang);
+    })();
+
+
+    // ============================================================
+    // 4. СИНХРОНИЗАЦИЯ С script.js
+    // ============================================================
+    (function() {
+        const originalToggle = window.toggleLanguage;
+        if (originalToggle && typeof originalToggle === 'function') {
+            const ourToggle = window.toggleLanguage;
+            window.toggleLanguage = function() {
+                if (typeof ourToggle === 'function') {
+                    ourToggle();
+                }
+                if (originalToggle && originalToggle !== ourToggle) {
+                    originalToggle();
+                }
+            };
+        }
+        const originalSet = window.setLanguage;
+        if (originalSet && typeof originalSet === 'function') {
+            const ourSet = window.setLanguage;
+            window.setLanguage = function(lang) {
+                if (typeof ourSet === 'function') {
+                    ourSet(lang);
+                }
+                if (originalSet && originalSet !== ourSet) {
+                    originalSet(lang);
+                }
+            };
+        }
+        console.log('✅ Синхронизация с script.js завершена');
+    })();
+</script>
+
+</body>
+</html>
